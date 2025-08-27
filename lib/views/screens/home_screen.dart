@@ -91,6 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                       ),
+                      Icon(Icons.notifications, size: 30,),
+                      SizedBox(width: 20,),
                       const ProfileCircleButton(),
                     ],
                   ),

@@ -2,9 +2,9 @@
 import 'dart:io';
 
 import 'package:autism_fyp/views/screens/gender_selectionscreen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz3/quiz3_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz4/quiz4_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz5/quiz5_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz3/quiz3_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz4/quiz4_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz5/quiz5_screen.dart';
 import 'package:autism_fyp/views/screens/leaderboard_screen.dart';
 import 'package:autism_fyp/views/screens/profile_screen.dart';
 import 'package:autism_fyp/views/screens/signup_screen.dart';

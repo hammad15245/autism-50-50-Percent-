@@ -1,23 +1,24 @@
 import 'package:autism_fyp/views/controllers/quizresult_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushing_teeth/brushing_teethquiz1.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushing_teeth/brushingteeth_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz2/screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz2/controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz2/quiz.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz3/quiz3_screen.dart';
+
 import 'package:autism_fyp/views/screens/progressheader.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BrushingteethScreen extends StatefulWidget {
-  const BrushingteethScreen({super.key});
+class Quiz2screen extends StatefulWidget {
+  const Quiz2screen({super.key});
 
   @override
-  State<BrushingteethScreen> createState() => _BrushingteethScreenState();
+  State<Quiz2screen> createState() => _Quiz2screenState();
 }
 
-class _BrushingteethScreenState extends State<BrushingteethScreen> {
-  final AnswerController answerController = Get.put(AnswerController());
-  final brushingController = BrushingTeethController.instance;
-
+class _Quiz2screenState extends State<Quiz2screen> {
+  final Quiz2answer answerController = Get.put(Quiz2answer());
+  final quiz2controller controller = quiz2controller.instance;
+  
 final ConfettiController confettiController =
     ConfettiController(duration: const Duration(seconds: 2));
 
@@ -44,12 +45,10 @@ void _handleAnswer(int index) {
       confettiController.play();
     }
 
-    // ✅ Update the total score in Firebase
     QuizScoreService().updateTotalScoreByEmail(isCorrect: correct);
 
-    // Delay and go to next screen
     Future.delayed(const Duration(seconds: 5), () {
-      Get.to(() => const Quiz2screen());
+      Get.to(() => const Quiz3screen());
     });
   }
 }
@@ -58,16 +57,10 @@ void _handleAnswer(int index) {
   }
 
   @override
-  void dispose() {
-    confettiController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
+      return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: SafeArea(
@@ -80,10 +73,10 @@ void _handleAnswer(int index) {
                 child: Column(
                   children: [
                     StepProgressHeader(
-                      currentStep: 1,
+                      currentStep: 2,
                       onBack: () => Navigator.pop(context),
                     ),
-                  
+                   
                   ],
                 ),
               ),
@@ -91,7 +84,7 @@ void _handleAnswer(int index) {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  'What does this picture refer to?',
+                  'What is this kid doing in this picture?',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -100,18 +93,17 @@ void _handleAnswer(int index) {
               ),
               SizedBox(height: screenHeight * 0.04),
 
-              // ✅ Image with animations overlay
               Center(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     Image.asset(
-                      'lib/assets/learning_module_ASSETS/toothbrush.png',
+                      'lib/assets/learning_module_ASSETS/brushingteeth.png',
                       height: screenHeight * 0.3,
                       fit: BoxFit.contain,
                     ),
 
-                    // 🎉 Confetti animation for correct answer
+                    // Confetti animation for correct answer
                     ConfettiWidget(
                       confettiController: confettiController,
                       blastDirectionality: BlastDirectionality.explosive,
@@ -141,7 +133,7 @@ void _handleAnswer(int index) {
               SizedBox(height: screenHeight * 0.02),
 
               Center(
-                child: BrushingTeethQuiz(),
+                child: Quiz2(),
               ),
             ],
           ),

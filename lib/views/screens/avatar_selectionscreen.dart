@@ -156,9 +156,6 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       ),
 
       // Continue button
-    Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
         Center(
           child: SizedBox(
         width: screenWidth * 0.65,
@@ -188,8 +185,8 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         ),
           ),
         ),
-      ],
-    )
+      
+    
 
     ],
   ),

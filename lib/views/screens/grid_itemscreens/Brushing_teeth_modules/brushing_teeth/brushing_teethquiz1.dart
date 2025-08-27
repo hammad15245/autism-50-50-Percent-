@@ -1,4 +1,4 @@
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz2/screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz2/screen.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

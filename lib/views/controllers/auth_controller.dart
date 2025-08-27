@@ -17,39 +17,140 @@ class AuthController extends GetxController {
   final emailController = TextEditingController(); // still required for Firebase Auth
 
   var isLoading = false.obs;
+  var passwordError = ''.obs;
+
+  // Password validation method
+  bool validatePassword(String password) {
+    // Reset error message
+    passwordError.value = '';
+
+    // Check minimum length
+    if (password.length < 8) {
+      passwordError.value = 'Password must be at least 8 characters long';
+      return false;
+    }
+    
+    // Check for at least one uppercase letter
+    if (!password.contains(RegExp(r'[A-Z]'))) {
+      passwordError.value = 'Password must contain at least one uppercase letter';
+      return false;
+    }
+    
+    // Check for at least one lowercase letter
+    if (!password.contains(RegExp(r'[a-z]'))) {
+      passwordError.value = 'Password must contain at least one lowercase letter';
+      return false;
+    }
+    
+    // Check for at least one digit
+    if (!password.contains(RegExp(r'[0-9]'))) {
+      passwordError.value = 'Password must contain at least one number';
+      return false;
+    }
+    
+    // Check for at least one special character
+    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      passwordError.value = 'Password must contain at least one special character';
+      return false;
+    }
+    
+    // Check for no whitespace
+    if (password.contains(RegExp(r'\s'))) {
+      passwordError.value = 'Password cannot contain spaces';
+      return false;
+    }
+    
+    return true;
+  }
 
   // ------------------- REGISTER -------------------
-  Future<void> registerUser() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final age = ageController.text.trim();
-    final gender = genderController.text.trim();
-    final username = usernamecontroller.text.trim();
+  // inside AuthController
 
-    try {
-      isLoading.value = true;
+// ------------------- REGISTER -------------------
+Future<void> registerUser(String selectedRole) async {
+  final email = emailController.text.trim();
+  final password = passwordController.text.trim();
+  final age = ageController.text.trim();
+  final gender = genderController.text.trim();
+  final username = usernamecontroller.text.trim();
 
-      UserCredential userCred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await _firestore.collection("users").doc(userCred.user!.uid).set({
-        "email": email,
-        "age": age,
-        "gender": gender,
-        "uid": userCred.user!.uid,
-        "username": username,
-        "avatar": null, // placeholder
-      });
-
-      Get.offAll(() => const LoginScreen());
-    } catch (e) {
-      Get.snackbar("Registration Failed", e.toString());
-    } finally {
-      isLoading.value = false;
-    }
+  // Validate password before proceeding
+  if (!validatePassword(password)) {
+    Get.snackbar(
+      "Password Error",
+      passwordError.value,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+    return;
   }
+
+  try {
+    isLoading.value = true;
+
+    // Create user in Firebase Auth
+    UserCredential userCred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    String uid = userCred.user!.uid;
+
+    // Determine collection based on role
+    String collectionName =
+        selectedRole.toLowerCase() == 'parent' ? 'parents' : 'users';
+
+    // Prepare user data WITH progress embedded
+    Map<String, dynamic> userData = {
+      "uid": uid,
+      "email": email,
+      "age": age,
+      "gender": gender,
+      "username": username,
+      "role": selectedRole.toLowerCase(),
+      "avatar": null,
+      "createdAt": FieldValue.serverTimestamp(),
+      "progress": selectedRole.toLowerCase() == "users"
+          ? {
+              "completedLessons": [],
+              "stars": 0,
+              "lastUpdated": FieldValue.serverTimestamp(),
+            }
+          : null, // Parents don’t need progress
+    };
+
+    // Save to appropriate collection
+    await _firestore.collection(collectionName).doc(uid).set(userData);
+
+    Get.offAll(() => const LoginScreen());
+    Get.snackbar("Success", "Account created successfully as $selectedRole!");
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'weak-password') {
+      Get.snackbar(
+        "Weak Password",
+        "The password provided is too weak.",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        "Registration Failed",
+        e.message ?? "An error occurred",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  } catch (e) {
+    Get.snackbar(
+      "Registration Failed",
+      "An unexpected error occurred",
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
 
   // ------------------- LOGIN -------------------
   Future<void> loginUser() async {
@@ -57,7 +158,8 @@ class AuthController extends GetxController {
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      Get.snackbar("Error", "Email and Password cannot be empty");
+      Get.snackbar("Error", "Email and Password cannot be empty",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
@@ -71,23 +173,55 @@ class AuthController extends GetxController {
 
       final userId = userCredential.user?.uid;
       if (userId == null) {
-        Get.snackbar("Error", "Something went wrong");
+        Get.snackbar("Error", "Something went wrong",
+            backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
 
-      final docSnapshot = await _firestore.collection('users').doc(userId).get();
-      final userData = docSnapshot.data() ?? {};
+      // Check both collections
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final parentDoc = await _firestore.collection('parents').doc(userId).get();
 
-      final hasGender = userData.containsKey('gender') && userData['gender'] != null;
-      final hasAvatar = userData.containsKey('avatar') && userData['avatar'] != null;
+      if (parentDoc.exists) {
+        // PARENT DETECTED - BLOCK ACCESS
+        await _auth.signOut(); // Sign them out immediately
+        Get.snackbar(
+          "👨‍👩‍👧‍👦 Parent Account",
+          "Parent dashboard is available on our website. Please visit website for parent features.",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 5),
+        );
+        return;
+      }
 
-      if (hasGender && hasAvatar) {
-        Get.offAll(() => const HomeScreen());
+      if (userDoc.exists) {
+        final userData = userDoc.data() ?? {};
+        final hasGender = userData.containsKey('gender') && userData['gender'] != null;
+        final hasAvatar = userData.containsKey('avatar') && userData['avatar'] != null;
+
+        if (hasGender && hasAvatar) {
+          Get.offAll(() => const HomeScreen());
+        } else {
+          Get.offAll(() => const GenderSelectionScreen());
+        }
       } else {
-        Get.offAll(() => const GenderSelectionScreen());
+        // User doesn't exist in either collection
+        await _auth.signOut();
+        Get.snackbar("Error", "User data not found",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        Get.snackbar("Login Failed", "Invalid email or password",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        Get.snackbar("Login Failed", e.message ?? "An error occurred",
+            backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      Get.snackbar("Login Failed", "Invalid email or password");
+      Get.snackbar("Login Failed", "An unexpected error occurred",
+          backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -100,15 +234,14 @@ class AuthController extends GetxController {
   }
 
   // ------------------- FETCH USER -------------------
-Future<String?> fetchUsername() async {
-  final user = _auth.currentUser;
-  if (user != null) {
-    final doc = await _firestore.collection('users').doc(user.uid).get();
-    return doc.data()?['username'] as String?;
+  Future<String?> fetchUsername() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      return doc.data()?['username'] as String?;
+    }
+    return null;
   }
-  return null;
-}
-
 
   // ------------------- SAVE USERNAME -------------------
   Future<void> saveUsername(String username) async {

@@ -1,11 +1,9 @@
-import 'package:autism_fyp/views/controllers/nav_controller.dart';
+import 'dart:math';
 import 'package:autism_fyp/views/screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -17,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? username;
   String? avatarPath;
+  String? uniqueId; // 🔹 cache the unique ID
 
   @override
   void initState() {
@@ -33,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           username = doc.data()?['username'] ?? 'No name';
           avatarPath = doc.data()?['avatar'];
+          uniqueId = doc.data()?['uniqueId']; // 🔹 fetch uniqueId if exists
         });
       }
     }
@@ -77,11 +77,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _generateAndShowId() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || username == null) return;
+
+    // 🔹 If ID already exists, don’t generate again
+    if (uniqueId == null) {
+      final random = Random();
+      final randomDigits = random.nextInt(9000) + 1000; // 1000–9999
+      uniqueId =
+          "${username!.substring(0, min(3, username!.length)).toUpperCase()}-$randomDigits";
+
+      // save only once
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'uniqueId': uniqueId,
+      });
+    }
+
+    // show popup
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            width: 280,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Your Unique ID",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  uniqueId ?? "",
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0E83AD)),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF0E83AD),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close"),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    // final navController = Get.find<NavController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -103,10 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                  onPressed: () => Get.to(HomeScreen())
-                ),
-                
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    onPressed: () => Get.to(HomeScreen())),
                 Text(
                   "Profile",
                   style: TextStyle(
@@ -121,12 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           // 🔹 Scrollable Content aligned from the top
           SingleChildScrollView(
-            // physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.only(top: screenHeight * 0.25), 
-          
+            padding: EdgeInsets.only(top: screenHeight * 0.25),
             child: Column(
               children: [
-                // 🔹 Circle Avatar (overlapping)
                 Align(
                   alignment: Alignment.topCenter,
                   child: CircleAvatar(
@@ -141,47 +198,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 5),
-
-                // 🔹 Username with edit button
-                // Container(
-                //   margin: const EdgeInsets.symmetric(horizontal: 30),
-                //   padding:
-                //       const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                //   decoration: BoxDecoration(
-                //     borderRadius: BorderRadius.circular(50),
-                //     color: Colors.white,
-                //     boxShadow: [
-                //       BoxShadow(
-                //         color: Colors.black.withOpacity(0.1),
-                //         blurRadius: 6,
-                //         offset: const Offset(0, 4),
-                //       ),
-                //     ],
-                //   ),
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         child: Text(
-                //           username ?? 'Loading...',
-                //           style: TextStyle(
-                //             fontSize: screenWidth * 0.05,
-                //             fontWeight: FontWeight.bold,
-                //             color: Colors.black87,
-                //           ),
-                //         ),
-                //       ),
-                //       IconButton(
-                //         onPressed: _editUsername,
-                //         icon: const Icon(Icons.edit, color: Colors.blue),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-
                 const SizedBox(height: 10),
 
-                // 🔹 Downward portion with rounded top borders
                 Container(
                   height: screenHeight * 0.6,
                   width: double.infinity,
@@ -194,42 +212,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       topRight: Radius.circular(30),
                     ),
                   ),
- child: Column(
-  children: [
-    const _ActionRow(
-      icon: Icons.person,
-      label: "Manage Profile",
-      color: Colors.blue,
-    ),
-    const Divider(height: 1, thickness: 0.2, color: Colors.grey),
-    const _ActionRow(
-      icon: Icons.email,
-      label: "Update Email & Password",
-      color: Colors.green,
-    ),
-    const Divider(height: 1, thickness: 0.2, color: Colors.grey),
-    const _ActionRow(
-      icon: Icons.subscriptions,
-      label: "Subscription",
-      color: Colors.purple,
-    ),
-    const Divider(height: 1, thickness: 0.2, color: Colors.grey),
-    const _ActionRow(
-      icon: Icons.exit_to_app,
-      label: "Logout",
-      color: Colors.red,
-    ),
-  ],
-),
+                  child: Column(
+                    children: [
+                      const _ActionRow(
+                        icon: Icons.person,
+                        label: "Manage Profile",
+                        color: Colors.blue,
+                      ),
+                      const Divider(height: 1, thickness: 0.2, color: Colors.grey),
+                      const _ActionRow(
+                        icon: Icons.email,
+                        label: "Update Email & Password",
+                        color: Colors.green,
+                      ),
+                      const Divider(height: 1, thickness: 0.2, color: Colors.grey),
+
+                      // 🔹 Generate ID row (only shows, never regenerates)
+                      GestureDetector(
+                        onTap: _generateAndShowId,
+                        child: const _ActionRow(
+                          icon: Icons.api_outlined,
+                          label: "Generate ID",
+                          color: Colors.purple,
+                        ),
+                      ),
+
+                      const Divider(height: 1, thickness: 0.2, color: Colors.grey),
+                      const _ActionRow(
+                        icon: Icons.exit_to_app,
+                        label: "Logout",
+                        color: Colors.red,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    
-
-      );
+    );
   }
 }
 
@@ -242,9 +264,9 @@ class _ActionRow extends StatelessWidget {
   final double iconRadius;
 
   const _ActionRow({
-    Key? key, 
-    required this.icon, 
-    required this.label, 
+    Key? key,
+    required this.icon,
+    required this.label,
     required this.color,
     this.iconSize = 24,
     this.iconRadius = 20,
@@ -256,12 +278,11 @@ class _ActionRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          // Circular icon container
           Container(
             width: iconRadius * 2,
             height: iconRadius * 2,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2), // Lighter background
+              color: color.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -273,7 +294,6 @@ class _ActionRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 15),
-          // Label text
           Text(
             label,
             style: const TextStyle(
@@ -281,13 +301,8 @@ class _ActionRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const Spacer(), // Pushes chevron to the right
-          // Optional chevron
-          Icon(
-            Icons.chevron_right,
-            color: Colors.grey[400],
-            size: 20,
-          ),
+          const Spacer(),
+          Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
         ],
       ),
     );

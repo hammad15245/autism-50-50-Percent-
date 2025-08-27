@@ -1,6 +1,6 @@
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz4/quiz4.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz4/quiz4_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz5/quiz5_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz4/quiz4.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz4/quiz4_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz5/quiz5_screen.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
 import 'package:autism_fyp/views/widget/custom_widget.dart';
 import 'package:confetti/confetti.dart';

@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushing_teeth/brushingteeth_controller.dart';
 
 class CustomElevatedButton extends StatelessWidget {
   final String text;
@@ -41,50 +40,52 @@ class CustomElevatedButton extends StatelessWidget {
   }
 
 
-}
-class GenderSelector extends StatefulWidget {
-  const GenderSelector({Key? key, required void Function(String gender) onGenderSelected}) : super(key: key);
+}class RoleSelector extends StatefulWidget {
+  const RoleSelector({Key? key, required this.onRoleSelected}) : super(key: key);
+
+  final void Function(String role) onRoleSelected;
 
   @override
-  State<GenderSelector> createState() => _GenderSelectorState();
+  State<RoleSelector> createState() => _RoleSelectorState();
 }
 
-class _GenderSelectorState extends State<GenderSelector> {
-  String selectedGender = 'Male';
+class _RoleSelectorState extends State<RoleSelector> {
+  String? selectedRole; // null means nothing selected by default
 
-  void _selectGender(String gender) {
+  void _selectRole(String role) {
     setState(() {
-      selectedGender = gender;
+      selectedRole = role;
     });
+    widget.onRoleSelected(role);
   }
-@override
-Widget build(BuildContext context) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    child: Row(
-      children: [
-        _genderOption(
-          label: 'Male',
-          icon: Icons.male,
-          isSelected: selectedGender == 'Male',
-          onTap: () => _selectGender('Male'),
-          selectedColor: const Color(0xFF0E83AD),
-        ),
-        const SizedBox(width: 16),
-        _genderOption(
-          label: 'Female',
-          icon: Icons.female,
-          isSelected: selectedGender == 'Female',
-          onTap: () => _selectGender('Female'),
-          selectedColor: const Color(0xFF0E83AD), 
-        ),
-      ],
-    ),
-  );
-}
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _roleOption(
+            label: 'Kid',
+            icon: Icons.child_care,
+            isSelected: selectedRole == 'Kid',
+            onTap: () => _selectRole('Kid'),
+            selectedColor: const Color(0xFF0E83AD),
+          ),
+          const SizedBox(width: 16),
+          _roleOption(
+            label: 'Parent',
+            icon: Icons.family_restroom,
+            isSelected: selectedRole == 'Parent',
+            onTap: () => _selectRole('Parent'),
+            selectedColor: const Color(0xFF0E83AD),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _genderOption({
+  Widget _roleOption({
     required String label,
     required IconData icon,
     required bool isSelected,
@@ -127,7 +128,6 @@ Widget build(BuildContext context) {
     );
   }
 }
-
 
 class ProfileCircleButton extends StatefulWidget {
   final double size;

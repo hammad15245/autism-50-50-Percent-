@@ -1,4 +1,4 @@
-import 'package:autism_fyp/views/screens/grid_itemscreens/brushingteethquiz5/quiz5.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz5/quiz5.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'quiz5_controller.dart';

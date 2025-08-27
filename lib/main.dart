@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'firebase_options.dart';
-import 'package:autism_fyp/views/controllers/nav_controller.dart'; // Add this import
+import 'package:autism_fyp/views/controllers/nav_controller.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,8 +19,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize NavController here (before any screens might need it)
-    Get.lazyPut(() => NavController(), fenix: true); // fenix: true keeps it alive
+    Get.lazyPut(() => NavController(), fenix: true); 
 
     return GetMaterialApp(
       title: 'Autism App',
