@@ -6,7 +6,7 @@ String getImageForTitle(String title) {
   switch (title.toLowerCase().trim()) {
     case 'brushing teeth':
       return 'lib/assets/brushingteeth.png';
-    case 'bathing & hygiene':
+    case 'bathing':
       return 'lib/assets/bathing.png';
     case 'eating food':
       return 'lib/assets/food.png';
@@ -40,7 +40,7 @@ String getImageForTitle(String title) {
       return 'lib/assets/matchnumbers.png';
         case 'numbers puzzle':
       return 'lib/assets/numberpuzzle.png'; 
-        case 'add and subtract numbers':
+        case 'addition and subtraction':
       return 'lib/assets/plusminus.png';
     default:
       return 'assets/images/default.png';

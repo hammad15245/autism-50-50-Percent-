@@ -1,30 +1,51 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz2/quiz2_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz3/quiz3_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class BubbleQuizController extends GetxController {
-var answers = <int, bool?>{}.obs; 
-  var hasAnswered = false.obs;
+  // Quiz options
+  var options = ['A', 'B', '1', '2', 'C', '3'].obs;
 
-  final List<String> options = ["A", "1", "B", "2", "C", "3"];
-  final List<String> correctAnswers = ["A", "B", "C"];
+  // Track answers: null = not answered, true = correct, false = incorrect
+  var answers = <bool?>[null, null, null, null, null, null].obs;
+
+  // Track correct answers (only letters are correct)
+  final List<bool> correctAnswers = [true, true, false, false, true, false];
 
   void initializeAnswers() {
-answers.value = { for (var i = 0; i < options.length; i++) i: null };
-    hasAnswered.value = false;
+    answers.value = [null, null, null, null, null, null];
   }
 
-  void selectAnswer(int index) {
-    if (hasAnswered.value) return;
+void checkAnswerAndNavigate() {
+  // Check if any answer is selected
+  if (answers.contains(true)) {
+    // Navigate if attempted
+    Get.to(() => const Quiz3Screen());
+  } else {
+    // Show snackbar if not attempted
+    Get.snackbar(
+      "Incomplete",
+      "Please select an answer before continuing.",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+  }
+}
 
-    final isCorrect = correctAnswers.contains(options[index]);
-    answers[index] = isCorrect;
-    hasAnswered.value = true;
+  void selectAnswer(int index) {
+    // If already answered, do nothing
+    if (answers[index] != null) return;
+
+    answers[index] = correctAnswers[index];
+  }
+
+  bool isAnswered(int index) {
+    return answers[index] != null;
   }
 
   bool isCorrectAnswer(int index) {
-    return answers[index] == true;
-  }
-
-  bool isWrongAnswer(int index) {
-    return answers[index] == false;
+    return correctAnswers[index];
   }
 }

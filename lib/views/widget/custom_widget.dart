@@ -1,4 +1,5 @@
 import 'package:autism_fyp/views/controllers/nav_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -482,3 +483,32 @@ class _ActionRow extends StatelessWidget {
     );
   }
 }
+
+
+class AvatarWidget extends StatelessWidget {
+  final RxBool isSpeaking;
+  final AvatarController controller = Get.put(AvatarController());
+
+  AvatarWidget({super.key, required this.isSpeaking});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.avatarPath.isEmpty) {
+        return const CircularProgressIndicator();
+      }
+      return Obx(() {
+        return AnimatedScale(
+          scale: isSpeaking.value ? 1.1 : 1.0,
+          duration: const Duration(milliseconds: 300),
+          child: Image.asset(
+            controller.avatarPath.value,
+            width: 70,
+            height: 70,
+          ),
+        );
+      });
+    });
+  }
+}
+
