@@ -1,9 +1,8 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz1/quiz1_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz1/quiz1_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quizprogressheader.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz3/quiz3_progress_header.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz3/quiz3_widget.dart';
-import 'package:autism_fyp/views/screens/progressheader.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,7 +29,7 @@ class FruitMathscreen extends StatelessWidget {
               /// Progress header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: StepProgressHeader(
+                child: addsubStepProgressHeader(
                   currentStep:1,
                   onBack: () => Navigator.pop(context),
                 ),

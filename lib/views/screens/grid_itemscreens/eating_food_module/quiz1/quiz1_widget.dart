@@ -19,7 +19,7 @@ class FoodIdentificationQuiz extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildHeader(screenWidth),
-          SizedBox(height: screenHeight * 0.02),
+          SizedBox(height: 10),
 
           // Progress bar
 Obx(() => LinearProgressIndicator(
@@ -29,30 +29,28 @@ Obx(() => LinearProgressIndicator(
       valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
 )),
 
-SizedBox(height: screenHeight * 0.015),
+SizedBox(height: 10),
 
 // Question number
 Obx(() => Text(
       "Question ${controller.currentQuestion}/${controller.totalQuestions.value}",
       style: TextStyle(
-        fontSize: screenWidth * 0.045,
+        fontSize: screenWidth * 0.040,
         fontWeight: FontWeight.w600,
         color: const Color(0xFF0E83AD),
       ),
 )),
 
      
-          SizedBox(height: screenHeight * 0.025),
+          SizedBox(height: 10),
 
           // Food image
           _buildFoodImage(screenWidth, screenHeight),
-          SizedBox(height: screenHeight * 0.025),
+          SizedBox(height: 20),
 
           // Options grid
          Obx(() => _buildOptionsGrid(screenWidth)),
-          SizedBox(height: screenHeight * 0.025),
-
-          // Action buttons or completion view
+          SizedBox(height: 20),
          Obx(() => controller.showCompletion.value
     ? _buildCompletionButtons(screenWidth, screenHeight)
     : const SizedBox.shrink(),
@@ -71,7 +69,7 @@ Obx(() => Text(
         Text(
           "What is this food?",
           style: TextStyle(
-            fontSize: screenWidth * 0.050,
+            fontSize: screenWidth * 0.047,
             color: Color(0xFF0E83AD),
           ),
           textAlign: TextAlign.center,
@@ -82,8 +80,8 @@ Obx(() => Text(
 
   Widget _buildFoodImage(double screenWidth, double screenHeight) {
     return Container(
-      width: screenWidth * 0.6,
-      height: screenWidth * 0.6,
+      width: screenWidth * 0.55,
+      height: screenWidth * 0.55,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -151,15 +149,15 @@ Obx(() => Text(
             color: Colors.green[700],
           ),
         ),
-              SizedBox(height: 8),
-        Obx(() => Text(
-              "Score: ${controller.score.value}/${controller.totalQuestions.value}",
-              style: TextStyle(
-                fontSize: screenWidth * 0.045,
-                color: Colors.orange[800],
-              ),
-            )),
-        SizedBox(height: 13),
+        //       SizedBox(height: 8),
+        // Obx(() => Text(
+        //       "Score: ${controller.score.value}/${controller.totalQuestions.value}",
+        //       style: TextStyle(
+        //         fontSize: screenWidth * 0.045,
+        //         color: Colors.orange[800],
+        //       ),
+        //     )),
+        SizedBox(height: 10),
         ElevatedButton(
           onPressed: controller.checkAnswerAndNavigate,
           style: ElevatedButton.styleFrom(

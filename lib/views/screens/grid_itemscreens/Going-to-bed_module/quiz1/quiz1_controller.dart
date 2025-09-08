@@ -1,9 +1,11 @@
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Going-to-bed_module/goindbed_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Going-to-bed_module/quiz2/quiz2_screen.dart';
 import 'package:get/get.dart';
-import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class BedtimeController extends GetxController {
   final audioService = AudioInstructionService.to;
+  final goingToBedController = Get.find<GoingToBedController>();
 
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
@@ -32,21 +34,20 @@ class BedtimeController extends GetxController {
   ];
 
   var currentSequence = <Map<String, String>>[].obs;
+  var retries = 0.obs;
+  final int totalScore = 5;
 
   @override
   void onInit() {
     super.onInit();
 
-    // Safe delayed call to avoid build-phase update issues
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
-        "Hey kiddo! Welcome to this module, let's start quiz1.",
+        "Hey kiddo! Welcome to this module, let's start quiz 1.",
         "goingbed_audios/quiz1.mp3",
       );
     });
   }
-
-  // ---------------- QUIZ LOGIC ---------------- //
 
   void addStep(Map<String, String> step) {
     if (!currentSequence.contains(step)) {
@@ -67,21 +68,35 @@ class BedtimeController extends GetxController {
     if (isCorrect) {
       audioService.playCorrectFeedback();
     } else {
+      retries.value++;
       audioService.playIncorrectFeedback();
     }
 
     return isCorrect;
   }
 
+  Future<void> checkAnswerAndNavigate() async {
+    final result = checkAnswer();
 
-    void checkAnswerAndNavigate() {
-     
-      // Navigate to the next screen
+    if (result) {
+      goingToBedController.recordQuizResult(
+        quizId: "quiz1",
+        score: totalScore,
+        retries: retries.value,
+        isCompleted: true,
+      );
+
+      await goingToBedController.syncModuleProgress();
+
       Get.to(() => const Emotionscreeen());
-      
+    } else {
+      audioService.setInstructionAndSpeak(
+        "Hmm, that order is not quite right. Try again!",
+        "goingbed_audios/try_again.mp3",
+      );
+    }
+  }
 
-    
-}
   void resetQuiz() {
     currentSequence.clear();
     audioService.setInstructionAndSpeak(

@@ -22,24 +22,17 @@ class SequenceQuiz extends StatelessWidget {
           Obx(() => Text(
             controller.levels[controller.currentLevel.value - 1]["instruction"],
             style: TextStyle(
-              fontSize: screenWidth * 0.04,
+              fontWeight: FontWeight.w600,
+              fontSize: screenWidth * 0.043,
               color: Color(0xFF0E83AD),
             ),
             textAlign: TextAlign.center,
           )),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 20),
           
-          Text(
-            "Tap numbers to get them in order:",
-            style: TextStyle(
-              fontSize: screenWidth * 0.045,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0E83AD),
-            ),
-          ),
-          SizedBox(height:10),
+       
           Obx(() => _buildAvailableNumbers(screenWidth)),
-          SizedBox(height: 10),
+          SizedBox(height: 15),
           
           // Selected Sequence
           Text(
@@ -47,12 +40,12 @@ class SequenceQuiz extends StatelessWidget {
             style: TextStyle(
               fontSize: screenWidth * 0.045,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF0E83AD),
+              color: Colors.green,
             ),
           ),
-          SizedBox(height:10),
+          SizedBox(height:15),
           _buildSelectedSequence(screenWidth),
-          SizedBox(height: 8),
+          SizedBox(height: 10),
           
           Obx(() =>  controller.showCompletion.value
             ? _buildCompletionButtons(screenWidth, screenHeight)
@@ -141,37 +134,22 @@ class SequenceQuiz extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Previous Level Button
-        if (controller.currentLevel.value > 1)
-          ElevatedButton(
-            onPressed: controller.previousLevel,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0E83AD),
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04,
-                vertical: screenHeight * 0.015,
-              ),
-            ),
-            child: Text(
-              "Continue",
-              style: TextStyle(
-                fontSize: screenWidth * 0.035,
-                color: Colors.white,
-              ),
-            ),
-          ),
         
         // Reset Button
         ElevatedButton(
           onPressed: controller.resetGame,
           style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04,
+                vertical: screenHeight * 0.015,
+              ),
             backgroundColor: Color(0xFF0E83AD),
         
           ),
           child: Text(
             "Reset",
             style: TextStyle(
-              fontSize: screenWidth * 0.035,
+              fontSize: screenWidth * 0.04,
               color: Colors.white,
             ),
           ),

@@ -21,7 +21,7 @@ class FoodGroupQuiz extends StatelessWidget {
           Obx(() => Text(
                 "Sorted: ${controller.placedItems.value}/${controller.totalItems.value}",
                 style: TextStyle(
-                  fontSize: screenWidth * 0.045,
+                  fontSize: screenWidth * 0.042,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF0E83AD),
                 ),
@@ -30,17 +30,17 @@ class FoodGroupQuiz extends StatelessWidget {
         Text(
             "Drag these items into their categories:",
             style: TextStyle(
-              fontSize: screenWidth * 0.048,
+              fontSize: screenWidth * 0.040,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF0E83AD),
             ),
           ),
-          SizedBox(height:5),
+          SizedBox(height:10),
 
           Obx(() => _buildAvailableFoods(screenWidth)),
           SizedBox(height: 10),
           _buildFoodGroupsGrid(screenWidth, screenHeight),
-          SizedBox(height: screenHeight * 0.025),
+          SizedBox(height: 10),
 
   
 

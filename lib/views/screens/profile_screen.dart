@@ -225,9 +225,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: "Update Email & Password",
                         color: Colors.green,
                       ),
+                                            const Divider(height: 1, thickness: 0.2, color: Colors.grey),
+                      GestureDetector(
+                        onTap: _editUsername,
+                        child: const _ActionRow(
+                          icon: Icons.edit,
+                          label: "Erase data",
+                          color: Color.fromARGB(255, 76, 145, 175),
+                        ),
+                      ),
                       const Divider(height: 1, thickness: 0.2, color: Colors.grey),
 
-                      // 🔹 Generate ID row (only shows, never regenerates)
                       GestureDetector(
                         onTap: _generateAndShowId,
                         child: const _ActionRow(

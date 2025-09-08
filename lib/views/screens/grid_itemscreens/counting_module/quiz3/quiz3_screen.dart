@@ -1,88 +1,122 @@
 
-import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz2/quiz2_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/quiz3_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/quiz3_widget.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/step_progressquiz3.dart';
 
 import 'package:flutter/material.dart';
-import 'package:autism_fyp/views/screens/progressheader.dart';
-
+import 'package:get/get.dart';
 
 class countingsequence extends StatelessWidget {
   const countingsequence({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
+    final SequenceController controller = Get.put(SequenceController());
+    final AvatarController avatarController = Get.put(AvatarController());
 
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: screenHeight * 0.04),
+
+              /// Progress header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: StepProgressHeaderquiz3(
-                  currentStep: 3, 
+                  currentStep: 3,
                   onBack: () => Navigator.pop(context),
                 ),
               ),
-              const SizedBox(height: 25),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  "Number Sequence Game",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        /// Avatar
+                        Obx(() {
+                          final avatarPath = avatarController.avatarPath.value;
+                          if (avatarPath.isEmpty) {
+                            return const SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return Image.asset(
+                            avatarPath,
+                            height: screenHeight * 0.10,
+                            width: screenWidth * 0.20,
+                            fit: BoxFit.contain,
+                          );
+                        }),
+
+                        const SizedBox(width: 16),
+
+                        /// Instruction Text (sync with TTS)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(2, 4),
+                                ),
+                              ],
+                            ),
+                            child: Obx(
+                              () => Text(
+                                controller.instructionText.value, 
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.01),
-            
-SequenceQuiz(),              
-              // SizedBox(height: screenHeight * 0.01),
-              // Padding(
-              //   padding: const EdgeInsets.only(bottom: 5.0),
-              //   child: Align(
-              //     alignment: Alignment.bottomCenter,
-              //     child: SizedBox(
-              //       width: screenWidth * 0.8,
-              //       height: screenHeight * 0.08,
-              //       child:  CustomElevatedButton(
-              //         text: "Continue",
-              //         onPressed: () {
-              //           controller.checkAnswerAndNavigate();
-              //         },
-              //       )),
-              //     ),
-                
-              // ),
 
-              // Try Again Button (commented out as per your pattern)
-              // Obx(() => controller.showCompletion.value
-              //     ? ElevatedButton(
-              //         onPressed: controller.resetQuiz,
-              //         style: ElevatedButton.styleFrom(
-              //           backgroundColor: Colors.orange,
-              //           padding: EdgeInsets.symmetric(
-              //             horizontal: screenWidth * 0.06,
-              //             vertical: screenHeight * 0.02,
-              //           ),
-              //         ),
-              //         child: Text(
-              //           "Try Again",
-              //           style: TextStyle(
-              //             fontSize: screenWidth * 0.04,
-              //             color: Colors.white,
-              //           ),
-              //         ),
-              //       )
-              //     : const SizedBox.shrink()),
+              const SizedBox(height: 30),
+
+              /// Quiz Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Tap numbers to get them in order.",
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: screenHeight * 0.01),
+
+              /// Quiz Widget
+               Center(child: SequenceQuiz()),
             ],
           ),
         ),

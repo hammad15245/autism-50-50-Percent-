@@ -18,18 +18,12 @@ class CountingQuiz extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
 
-          
-          Text("Tap the items and count how many you see",
-              style: TextStyle(
-                  fontSize: screenWidth * 0.04, color: Color(0xFF0E83AD)),
-              textAlign: TextAlign.center),
-          SizedBox(height: 10),
-          
+   
           // Progress
           Obx(() => Text(
               "Question ${controller.currentQuestion.value}/${controller.totalQuestions.value}",
               style: TextStyle(
-                  fontSize: screenWidth * 0.04,
+                  fontSize: screenWidth * 0.045,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF0E83AD)))),
           SizedBox(height: 5),
@@ -52,14 +46,14 @@ class CountingQuiz extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           )),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 20),
           
           // Items to Count Grid
           _buildCountableItems(screenWidth, screenHeight),
           SizedBox(height: 10),
           
           _buildCounterSection(screenWidth, screenHeight),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 10),
           
           // Action Buttons
           Align(
@@ -218,14 +212,7 @@ class CountingQuiz extends StatelessWidget {
                 color: Colors.green[700],
               ),
             ),
-            SizedBox(height: screenHeight * 0.02),
-            Text(
-              "Score: ${controller.score.value}/${controller.totalQuestions.value}",
-              style: TextStyle(
-                fontSize: screenWidth * 0.045,
-                color: Color(0xFF0E83AD),
-              ),
-            ),
+         
             SizedBox(height:7),
             ElevatedButton(
               onPressed: controller.checkAnswerAndNavigate,

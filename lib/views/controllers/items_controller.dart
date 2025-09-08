@@ -1,12 +1,16 @@
+import 'package:autism_fyp/views/games/bucket_game.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Going-to-bed_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz4/quiz4_screen.dart';
+
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/quiz1/quiz1_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/living_nonliving_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/widget/items_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -104,6 +108,18 @@ void navigateToItemScreen(String title, BuildContext context) {
            case 'addition and subtraction':
       Get.to(() =>  FruitMathscreen());
       break;
+          case 'birds':
+      Get.to(() =>  BirdSoundscreen());
+      break;
+          case 'home animals':
+      Get.to(() =>  animalsortingscreen());
+      break;
+           case 'big and small alphabets':
+      Get.to(() =>  livingnonlivingscreen());
+      break;
+      //     case 'sounds of alphabets':
+      // Get.to(() =>  BucketGame());
+      // break;
       
       
     default:
@@ -112,4 +128,8 @@ void navigateToItemScreen(String title, BuildContext context) {
       );
   }
 }
+
+
+
+
 

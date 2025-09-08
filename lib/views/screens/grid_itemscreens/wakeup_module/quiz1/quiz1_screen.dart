@@ -2,6 +2,7 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz1/quiz1_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz1/quiz1_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz3_progress_header.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,7 +29,7 @@ class wakeupscreen extends StatelessWidget {
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: StepProgressHeader(
+                child: breakfastStepProgressHeader(
                   currentStep: 1,
                   onBack: () => Navigator.pop(context),
                 ),

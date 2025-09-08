@@ -1,19 +1,28 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/eating_food_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/quiz3/quiz3_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class FoodGroupController extends GetxController {
   var score = 0.obs;
   var totalItems = 0.obs;
   var placedItems = 0.obs;
   var showCompletion = false.obs;
+  var retries = 0.obs;
+  var wrongAnswersCount = 0.obs;
 
-  FlutterTts flutterTts = FlutterTts();
-  var isTtsReady = false.obs;
+  final audioService = AudioInstructionService.to;
+  final eatingFoodController = Get.find<EatingFoodController>();
+
+  RxString get instructionText => audioService.instructionText;
+  RxBool get isSpeaking => audioService.isSpeaking;
+
+  // Track locked items (foods that can't be moved until reset)
+  var lockedItems = <String>[].obs;
 
   // Make groups reactive
-var foodGroups = <Map<String, dynamic>>[].obs; 
+  var foodGroups = <Map<String, dynamic>>[].obs; 
 
   // Food items to sort
   var availableFoods = <Map<String, dynamic>>[].obs;
@@ -21,119 +30,163 @@ var foodGroups = <Map<String, dynamic>>[].obs;
   @override
   void onInit() {
     super.onInit();
-    initializeTts();
     resetGame();
+    
+    Future.delayed(Duration.zero, () {
+      audioService.setInstructionAndSpeak(
+        "Okay kiddos! Let's drag each food to its correct group.",
+        "goingbed_audios/food_groups_instruction.mp3",
+      );
+    });
   }
 
-  Future<void> initializeTts() async {
-    try {
-      await flutterTts.setLanguage("en-US");
-      await flutterTts.setPitch(1.0);
-      await flutterTts.setSpeechRate(0.5);
-      await flutterTts.setVolume(1.0);
+  void resetGame() {
+    score.value = 0;
+    placedItems.value = 0;
+    showCompletion.value = false;
+    wrongAnswersCount.value = 0;
+    lockedItems.clear(); // Clear locked items on reset
 
-      isTtsReady.value = true;
-      speakInstructions();
-    } catch (e) {
-      print("Error initializing TTS: $e");
-      isTtsReady.value = false;
+    foodGroups.clear();
+    foodGroups.addAll([
+      {
+        "name": "Fruits",
+        "icon": "🍎",
+        "color": Colors.red[300]!,
+        "items": <String>[],
+        "correctItems": ["Apple", "Banana"]
+      },
+      {
+        "name": "Vegetables",
+        "icon": "🥦",
+        "color": Colors.green[300]!,
+        "items": <String>[],
+        "correctItems": ["Carrot", "Broccoli"]
+      },
+      {
+        "name": "Proteins",
+        "icon": "🥩",
+        "color": Colors.brown[300]!,
+        "items": <String>[],
+        "correctItems": ["Chicken", "Egg"]
+      },
+      // Removed Grains category to simplify
+      {
+        "name": "Dairy",
+        "icon": "🥛",
+        "color": Colors.blue[300]!,
+        "items": <String>[],
+        "correctItems": ["Milk", "Cheese"]
+      },
+    ]);
+
+    availableFoods.clear();
+    for (var group in foodGroups) {
+      for (var food in group["correctItems"]) {
+        availableFoods.add({
+          "name": food,
+          "correctGroup": group["name"],
+          "icon": group["icon"],
+          "isLocked": false, // Add locked status to each food
+        });
+      }
     }
+
+    availableFoods.shuffle();
+    totalItems.value = availableFoods.length;
   }
-
-  Future<void> speakInstructions() async {
-    if (!isTtsReady.value) return;
-    await flutterTts.speak(
-      "Drag each food to its correct group. Fruits, vegetables, proteins, grains, and dairy.",
-    );
-  }
-
-  Future<void> speakMessage(String message) async {
-    if (!isTtsReady.value) return;
-    await flutterTts.speak(message);
-  }
-void resetGame() {
-  score.value = 0;
-  placedItems.value = 0;
-  showCompletion.value = false;
-
-  foodGroups.clear();
-  foodGroups.addAll([
-    {
-      "name": "Fruits",
-      "icon": "🍎",
-      "color": Colors.red[300]!,
-      "items": <String>[],
-      "correctItems": ["Apple", "Banana"]
-    },
-    {
-      "name": "Vegetables",
-      "icon": "🥦",
-      "color": Colors.green[300]!,
-      "items": <String>[],
-      "correctItems": ["Carrot", "Broccoli"]
-    },
-    {
-      "name": "Proteins",
-      "icon": "🥩",
-      "color": Colors.brown[300]!,
-      "items": <String>[],
-      "correctItems": ["Chicken", "Egg"]
-    },
-    {
-      "name": "Grains",
-      "icon": "🍞",
-      "color": Colors.amber[300]!,
-      "items": <String>[],
-      "correctItems": ["Bread", "Rice"]
-    },
-  ]);
-
-  availableFoods.clear();
-  for (var group in foodGroups) {
-    for (var food in group["correctItems"]) {
-      availableFoods.add({
-        "name": food,
-        "correctGroup": group["name"],
-        "icon": group["icon"],
-      });
-    }
-  }
-
-  availableFoods.shuffle();
-  totalItems.value = availableFoods.length;
-
-  speakInstructions();
-}
 
   void placeFood(String groupName, String foodName) {
+    // Check if food is already locked (placed correctly)
+    if (lockedItems.contains(foodName)) {
+      return; // Don't allow moving locked items
+    }
+
     final group = foodGroups.firstWhere((g) => g["name"] == groupName);
 
     if (!(group["items"] as List<String>).contains(foodName)) {
       (group["items"] as List<String>).add(foodName);
+      
+      // Remove from available foods
       availableFoods.removeWhere((food) => food["name"] == foodName);
+      
       placedItems.value++;
     }
 
-    if ((group["correctItems"] as List<String>).contains(foodName)) {
+    final isCorrect = (group["correctItems"] as List<String>).contains(foodName);
+    
+    if (isCorrect) {
       score.value++;
-      speakMessage("Good job! $foodName belongs to ${group["name"]}");
+      
+      // Lock the item in place when placed correctly
+      lockedItems.add(foodName);
+      
+      audioService.playCorrectFeedback();
+      audioService.setInstructionAndSpeak(
+        "Good job! $foodName belongs to ${group["name"]}",
+        "eating_food_audios/correct_feedback.mp3",
+      );
     } else {
-      speakMessage("Oops! $foodName does not belong to ${group["name"]}");
+      wrongAnswersCount.value++;
+      audioService.playIncorrectFeedback();
+      
+      // Record the wrong answer
+      eatingFoodController.recordWrongAnswer(
+        quizId: "quiz2",
+        questionId: foodName,
+        wrongAnswer: groupName,
+        correctAnswer: _findCorrectGroupForFood(foodName),
+      );
+      
+      audioService.setInstructionAndSpeak(
+        "Oops! $foodName does not belong to ${group["name"]}",
+        "eating_food_audios/incorrect_feedback.mp3",
+      );
+      
+      // Return incorrect items to available foods after a delay
+      Future.delayed(Duration(seconds: 2), () {
+        if (!lockedItems.contains(foodName)) { // Only return if not locked
+          removeFood(groupName, foodName);
+        }
+      });
     }
 
     checkCompletion();
-    foodGroups.refresh(); // refresh reactive list
+    foodGroups.refresh();
+  }
+
+  // Check if a food item is locked (can't be moved)
+  bool isFoodLocked(String foodName) {
+    return lockedItems.contains(foodName);
+  }
+
+  String _findCorrectGroupForFood(String foodName) {
+    for (var group in foodGroups) {
+      if ((group["correctItems"] as List<String>).contains(foodName)) {
+        return group["name"];
+      }
+    }
+    return "Unknown";
   }
 
   void removeFood(String groupName, String foodName) {
+    // Don't remove locked items
+    if (lockedItems.contains(foodName)) {
+      return;
+    }
+
     final group = foodGroups.firstWhere((g) => g["name"] == groupName);
     if ((group["items"] as List<String>).contains(foodName)) {
       (group["items"] as List<String>).remove(foodName);
+      
+      // Add back to available foods
       availableFoods.add({
         "name": foodName,
-        "correctGroup": groupName,
-        "icon": group["icon"],
+        "correctGroup": _findCorrectGroupForFood(foodName),
+        "icon": "❓", // Use question mark for returned items
+        "isLocked": false,
       });
+      
       placedItems.value--;
 
       if ((group["correctItems"] as List<String>).contains(foodName)) {
@@ -146,41 +199,84 @@ void resetGame() {
   void checkCompletion() {
     if (placedItems.value >= totalItems.value) {
       showCompletion.value = true;
+      completeQuiz();
+    }
+  }
 
-      final correctCount = score.value;
-      final total = totalItems.value;
+  void completeQuiz() {
+    final correctCount = score.value;
+    final total = totalItems.value;
 
-      if (correctCount == total) {
-        speakMessage("Perfect! You sorted all $total foods correctly!");
-      } else {
-        speakMessage(
-          "Good try! You got $correctCount out of $total correct. Let's move to another test",
-        );
-      }
+    // Calculate final score (each correct placement = 1 point)
+    final earnedScore = correctCount;
+    final isPassed = earnedScore >= (total * 0.7); // 70% to pass
+
+    // Record quiz result
+    eatingFoodController.recordQuizResult(
+      quizId: "quiz2",
+      score: earnedScore,
+      retries: retries.value,
+      isCompleted: isPassed,
+      wrongAnswersCount: wrongAnswersCount.value,
+    );
+    
+    // Sync with Firestore
+    eatingFoodController.syncModuleProgress();
+
+    if (correctCount == total) {
+      audioService.setInstructionAndSpeak(
+        "Perfect! You sorted all $total foods correctly!",
+        "eating_food_audios/perfect_score.mp3",
+      );
+    } else if (isPassed) {
+      audioService.setInstructionAndSpeak(
+        "Good job! You got $correctCount out of $total correct.",
+        "eating_food_audios/good_score.mp3",
+      );
+    } else {
+      audioService.setInstructionAndSpeak(
+        "Good try! You got $correctCount out of $total correct. Let's practice more.",
+        "eating_food_audios/need_practice.mp3",
+      );
     }
   }
 
   void resetFood(String foodName) {
-    for (var group in foodGroups) {
-      if ((group["items"] as List<String>).contains(foodName)) {
-        removeFood(group["name"], foodName);
-        break;
+    // Only reset non-locked items
+    if (!lockedItems.contains(foodName)) {
+      for (var group in foodGroups) {
+        if ((group["items"] as List<String>).contains(foodName)) {
+          removeFood(group["name"], foodName);
+          break;
+        }
       }
     }
   }
 
-    void checkAnswerAndNavigate() {
-     
-      // Navigate to the next screen
-      Get.to(() => const HealthyChoicesscreen());
-      
-
+  void retryQuiz() {
+    retries.value++;
+    resetGame();
     
-}
+    audioService.setInstructionAndSpeak(
+      "Let's try again! Drag each food to its correct group.",
+      "eating_food_audios/retry_instruction.mp3",
+    );
+  }
+
+  void checkAnswerAndNavigate() {
+    if (showCompletion.value) {
+      Get.to(() => const HealthyChoicesscreen());
+    }
+  }
+
+  // Get available foods that are not locked
+  List<Map<String, dynamic>> getAvailableUnlockedFoods() {
+    return availableFoods.where((food) => !lockedItems.contains(food["name"])).toList();
+  }
 
   @override
   void onClose() {
-    flutterTts.stop();
+    audioService.stopSpeaking();
     super.onClose();
   }
 }

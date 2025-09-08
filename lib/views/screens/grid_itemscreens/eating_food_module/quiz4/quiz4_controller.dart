@@ -1,46 +1,71 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/eating_food_controller.dart';
 import 'package:get/get.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class HealthyTreatController extends GetxController {
   var currentQuestionIndex = 0.obs;
   var userAnswer = "".obs;
   var feedbackMessage = "".obs;
   var showCompletion = false.obs;
+  var score = 0.obs;
+  var retries = 0.obs;
+  var wrongAnswersCount = 0.obs;
+  var totalQuestions = 0.obs;
 
-  final FlutterTts tts = FlutterTts();
+  final audioService = AudioInstructionService.to;
+  final eatingFoodController = Get.find<EatingFoodController>();
+
+  RxString get instructionText => audioService.instructionText;
+  RxBool get isSpeaking => audioService.isSpeaking;
 
   final List<Map<String, dynamic>> questions = [
     {
       "question": "Which one is more healthier?",
       "healthy": {"name": "apple", "icon": "lib/assets/quiz3_cleansorting/apple.png"},
-      "treat": {"name": "candies", "icon": "lib/assets/quiz3_cleansorting/candy.png"}
+      "treat": {"name": "candies", "icon": "lib/assets/quiz3_cleansorting/candy.png"},
+      "audio": "eating_food_audios/healthier_question.mp3"
     },
     {
       "question": "Which one helps you grow?",
       "healthy": {"name": "carrot", "icon": "lib/assets/quiz3_cleansorting/carrot.png"},
-      "treat": {"name": "cookie", "icon": "lib/assets/quiz3_cleansorting/cookie.png"}
+      "treat": {"name": "cookie", "icon": "lib/assets/quiz3_cleansorting/cookie.png"},
+      "audio": "eating_food_audios/grow_question.mp3"
     },
     {
       "question": "Which food gives you energy?",
       "healthy": {"name": "chicken", "icon": "lib/assets/quiz3_cleansorting/chicken.png"},
-      "treat": {"name": "chips", "icon": "lib/assets/quiz3_cleansorting/chips.png"}
+      "treat": {"name": "chips", "icon": "lib/assets/quiz3_cleansorting/chips.png"},
+      "audio": "eating_food_audios/energy_question.mp3"
     },
   ];
 
   @override
   void onInit() {
     super.onInit();
-    _speakQuestion(); // Speak first question on start
+    totalQuestions.value = questions.length;
+    
+    Future.delayed(Duration.zero, () {
+      audioService.setInstructionAndSpeak(
+        "Kiddos Lets learn about healthy foods! Choose the healthier option and type them for each question.",
+        "goingbed_audios/healthy_treat_intro.mp3",
+      );
+      _speakQuestion(); // Speak first question after intro
+    });
   }
 
   void _speakQuestion() async {
     var current = questions[currentQuestionIndex.value];
     String questionText = current["question"].toString();
-    await tts.setLanguage("en-US");
-     await tts.setPitch(1.0);
-      await tts.setSpeechRate(0.5);
-      await tts.setVolume(1.0);
-    await tts.speak(questionText);
+    
+    // Speak the question using audio file if available, otherwise use TTS
+    if (current.containsKey("audio") && current["audio"] != null) {
+      audioService.setInstructionAndSpeak(
+        questionText,
+        current["audio"],
+      );
+    } else {
+        // audioService.speak(questionText);
+    }
   }
 
   void checkAnswer() async {
@@ -50,14 +75,34 @@ class HealthyTreatController extends GetxController {
     String input = userAnswer.value.trim().toLowerCase();
 
     if (input == correctAnswer) {
+      score.value++;
       feedbackMessage.value = "Correct! ✅";
-      await tts.speak("Correct!");
-      Future.delayed(const Duration(seconds: 4), () {
+      audioService.playCorrectFeedback();
+      audioService.setInstructionAndSpeak(
+        "Great choice! ${healthy["name"]} is the healthier option.",
+        "eating_food_audios/correct_healthy.mp3",
+      );
+      
+      Future.delayed(const Duration(seconds: 3), () {
         nextQuestion();
       });
     } else {
+      wrongAnswersCount.value++;
       feedbackMessage.value = "Oops! Try again ❌";
-      await tts.speak("Oops! Try again!");
+      audioService.playIncorrectFeedback();
+      
+      // Record the wrong answer
+      eatingFoodController.recordWrongAnswer(
+        quizId: "quiz4",
+        questionId: current["question"],
+        wrongAnswer: userAnswer.value,
+        correctAnswer: healthy["name"],
+      );
+      
+      audioService.setInstructionAndSpeak(
+        "${healthy["name"]} is the healthier choice. Let's try the next one!",
+        "eating_food_audios/incorrect_healthy.mp3",
+      );
     }
   }
 
@@ -68,15 +113,81 @@ class HealthyTreatController extends GetxController {
       feedbackMessage.value = "";
       _speakQuestion(); // Speak new question
     } else {
-      showCompletion.value = true;
+      completeQuiz();
     }
   }
 
-  void resetQuiz() {
+  void completeQuiz() {
+    showCompletion.value = true;
+    
+    final earnedScore = score.value;
+    final total = totalQuestions.value;
+    final isPassed = earnedScore >= (total * 0.7); // 70% to pass
+
+    // Record quiz result
+    eatingFoodController.recordQuizResult(
+      quizId: "quiz4",
+      score: earnedScore,
+      retries: retries.value,
+      isCompleted: isPassed,
+      wrongAnswersCount: wrongAnswersCount.value,
+    );
+    
+    // Sync with Firestore
+    eatingFoodController.syncModuleProgress();
+
+    if (earnedScore == total) {
+      audioService.setInstructionAndSpeak(
+        "Perfect! You got all $total questions correct! You're a healthy eating expert!",
+        "eating_food_audios/perfect_healthy.mp3",
+      );
+    } else if (isPassed) {
+      audioService.setInstructionAndSpeak(
+        "Good job! You got $earnedScore out of $total correct. You know your healthy foods!",
+        "eating_food_audios/good_healthy.mp3",
+      );
+    } else {
+      audioService.setInstructionAndSpeak(
+        "Good try! You got $earnedScore out of $total correct. Let's learn more about healthy foods together.",
+        "eating_food_audios/practice_healthy.mp3",
+      );
+    }
+  }
+
+  void retryQuiz() {
+    retries.value++;
     currentQuestionIndex.value = 0;
     userAnswer.value = "";
     feedbackMessage.value = "";
+    score.value = 0;
+    wrongAnswersCount.value = 0;
     showCompletion.value = false;
-    _speakQuestion(); // Speak first question again
+    
+    audioService.setInstructionAndSpeak(
+      "Let's try again! Remember to choose the healthier option.",
+      "eating_food_audios/retry_healthy.mp3",
+    );
+    _speakQuestion();
+  }
+
+  void setUserAnswer(String answer) {
+    userAnswer.value = answer;
+    checkAnswer();
+  }
+
+  // Get current question data
+  Map<String, dynamic> get currentQuestion {
+    return questions[currentQuestionIndex.value];
+  }
+
+  // Get progress percentage
+  double get progressPercentage {
+    return (currentQuestionIndex.value + 1) / questions.length;
+  }
+
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
   }
 }

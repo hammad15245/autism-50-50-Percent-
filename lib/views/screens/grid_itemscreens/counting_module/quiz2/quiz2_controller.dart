@@ -1,7 +1,8 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/counting_module_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/quiz3_screen.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class NumberMatchController extends GetxController {
   // Game state
@@ -10,10 +11,14 @@ class NumberMatchController extends GetxController {
   var totalQuestions = 0.obs;
   var currentQuestion = 1.obs;
   var showCompletion = false.obs;
+  var retries = 0.obs;
+  var wrongAnswersCount = 0.obs;
   
-  // TTS controller
-  FlutterTts flutterTts = FlutterTts();
-  var isTtsReady = false.obs;
+  final audioService = AudioInstructionService.to;
+  final countingModuleController = Get.find<CountingModuleController>();
+
+  RxString get instructionText => audioService.instructionText;
+  RxBool get isSpeaking => audioService.isSpeaking;
   
   // Questions pool
   final List<Map<String, dynamic>> questions = [
@@ -23,7 +28,8 @@ class NumberMatchController extends GetxController {
         {"count": 2, "image": "lib/assets/RiverGame/star_2.png", "correct": false},
         {"count": 3, "image": "lib/assets/RiverGame/star_3.png", "correct": true},
         {"count": 4, "image": "lib/assets/RiverGame/star_4.png", "correct": false},
-      ]
+      ],
+      "audio": "counting_audios/number_3.mp3"
     },
     {
       "number": 5,
@@ -31,7 +37,8 @@ class NumberMatchController extends GetxController {
         {"count": 4, "image": "lib/assets/RiverGame/star_4.png", "correct": false},
         {"count": 5, "image": "lib/assets/RiverGame/star_5.png", "correct": true},
         {"count": 6, "image": "lib/assets/RiverGame/star_6.png", "correct": false},
-      ]
+      ],
+      "audio": "counting_audios/number_5.mp3"
     },
     {
       "number": 2,
@@ -39,7 +46,8 @@ class NumberMatchController extends GetxController {
         {"count": 2, "image": "lib/assets/RiverGame/star_2.png", "correct": true},
         {"count": 3, "image": "lib/assets/RiverGame/star_3.png", "correct": false},
         {"count": 1, "image": "lib/assets/RiverGame/star_1.png", "correct": false},
-      ]
+      ],
+      "audio": "counting_audios/number_2.mp3"
     },
     {
       "number": 4,
@@ -47,7 +55,8 @@ class NumberMatchController extends GetxController {
         {"count": 3, "image": "lib/assets/RiverGame/star_3.png", "correct": false},
         {"count": 5, "image": "lib/assets/RiverGame/star_5.png", "correct": false},
         {"count": 4, "image": "lib/assets/RiverGame/star_4.png", "correct": true},
-      ]
+      ],
+      "audio": "counting_audios/number_4.mp3"
     },
     {
       "number": 6,
@@ -55,7 +64,8 @@ class NumberMatchController extends GetxController {
         {"count": 6, "image": "lib/assets/RiverGame/star_6.png", "correct": true},
         {"count": 5, "image": "lib/assets/RiverGame/star_5.png", "correct": false},
         {"count": 7, "image": "lib/assets/RiverGame/star_7.png", "correct": false},
-      ]
+      ],
+      "audio": "counting_audios/number_6.mp3"
     },
   ];
 
@@ -64,43 +74,15 @@ class NumberMatchController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    initializeTts();
+    
+    Future.delayed(Duration.zero, () {
+      audioService.setInstructionAndSpeak(
+        "Ok Kiddos lets Match the number with the correct group of items! Listen to the number and find the matching group.",
+        "goingbed_audios/number_match_intro.mp3",
+      );
+    });
+    
     resetQuiz();
-  }
-
-  Future<void> initializeTts() async {
-    try {
-      // Set TTS settings
-      await flutterTts.setLanguage("en-US");
-      await flutterTts.setPitch(1.0);
-      await flutterTts.setSpeechRate(0.6); // Slower speed for kids
-      await flutterTts.setVolume(2.0);
-      
-      isTtsReady.value = true;
-      print("TTS initialized successfully");
-    } catch (e) {
-      print("Error initializing TTS: $e");
-      isTtsReady.value = false;
-    }
-  }
-
-  Future<void> speakNumber(int number) async {
-    if (!isTtsReady.value) return;
-    
-    try {
-      // await flutterTts.stop(); // Stop any previous speech
-      await flutterTts.speak("$number");
-      print("Speaking: $number");
-    } catch (e) {
-      print("Error speaking: $e");
-    }
-  }
-
-  Future<void> speakWithDelay(String text, {int delayMs = 500}) async {
-    if (!isTtsReady.value) return;
-    
-    await Future.delayed(Duration(milliseconds: delayMs));
-    await flutterTts.speak(text);
   }
 
   void resetQuiz() {
@@ -108,6 +90,7 @@ class NumberMatchController extends GetxController {
     totalQuestions.value = questions.length;
     currentQuestion.value = 1;
     showCompletion.value = false;
+    wrongAnswersCount.value = 0;
     loadQuestion(0);
   }
 
@@ -116,7 +99,15 @@ class NumberMatchController extends GetxController {
       currentQuestionData.value = questions[index];
       currentNumber.value = questions[index]["number"];
       
-      speakNumber(currentNumber.value);
+      // Speak the number using audio service
+      if (currentQuestionData.containsKey("audio")) {
+        audioService.setInstructionAndSpeak(
+          "Find $currentNumber",
+          currentQuestionData["audio"],
+        );
+      } else {
+        // audioService.speak("Find $currentNumber");
+      }
     } else {
       showCompletion.value = true;
     }
@@ -127,72 +118,117 @@ class NumberMatchController extends GetxController {
     
     if (optionIndex < options.length && options[optionIndex]["correct"] == true) {
       score.value++;
-      
-      // Speak success message
-      speakWithDelay("Correct!");
-      
-      Get.snackbar(
-        "Correct! 🎉",
-        "You matched number $currentNumber correctly!",
-        backgroundColor: Colors.green.shade300,
-        colorText: Colors.white,
-        duration: Duration(seconds: 2),
+      audioService.playCorrectFeedback();
+      audioService.setInstructionAndSpeak(
+        "Correct! You matched number $currentNumber!",
+        "counting_audios/number_correct.mp3",
       );
 
       // Move to next question after delay
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () {
         if (currentQuestion.value < totalQuestions.value) {
           currentQuestion.value++;
           loadQuestion(currentQuestion.value - 1);
         } else {
-          showCompletion.value = true;
-          
-          // Speak completion message
-          speakWithDelay("Quiz completed! Your score is $score out of $totalQuestions");
-          
-          Get.snackbar(
-            "Quiz Completed! 🎓",
-            "Your score: $score/${totalQuestions.value}",
-            backgroundColor: Colors.blue.shade300,
-            colorText: Colors.white,
-            duration: Duration(seconds: 3),
-          );
+          completeQuiz();
         }
       });
     } else {
-      speakWithDelay("Try again.");
+      wrongAnswersCount.value++;
+      audioService.playIncorrectFeedback();
       
-      Get.snackbar(
-        "Try Again",
-        "Find the group with $currentNumber items",
-        backgroundColor: Colors.orange.shade300,
-        colorText: Colors.white,
-        duration: Duration(seconds: 2),
+      // Record the wrong answer
+      final selectedCount = options[optionIndex]["count"];
+      countingModuleController.recordWrongAnswer(
+        quizId: "quiz2",
+        questionId: "Match number $currentNumber",
+        wrongAnswer: selectedCount.toString(),
+        correctAnswer: currentNumber.value.toString(),
+      );
+      
+      audioService.setInstructionAndSpeak(
+        "That group has $selectedCount items. Find the group with $currentNumber items.",
+        "counting_audios/number_incorrect.mp3",
       );
     }
   }
+
+  void completeQuiz() {
+    showCompletion.value = true;
+    
+    final earnedScore = score.value;
+    final total = totalQuestions.value;
+    final isPassed = earnedScore >= (total * 0.7); // 70% to pass
+
+    // Record quiz result
+    countingModuleController.recordQuizResult(
+      quizId: "quiz2",
+      score: earnedScore,
+      retries: retries.value,
+      isCompleted: isPassed,
+      wrongAnswersCount: wrongAnswersCount.value,
+    );
+    
+    // Sync with Firestore
+    countingModuleController.syncModuleProgress();
+
+    if (earnedScore == total) {
+      audioService.setInstructionAndSpeak(
+        "Perfect! You matched all $total numbers correctly! You're a number matching expert!",
+        "counting_audios/number_perfect.mp3",
+      );
+    } else if (isPassed) {
+      audioService.setInstructionAndSpeak(
+        "Good job! You got $earnedScore out of $total correct. Great number matching!",
+        "counting_audios/number_good.mp3",
+      );
+    } else {
+      audioService.setInstructionAndSpeak(
+        "Good try! You got $earnedScore out of $total correct. Let's practice more number matching together.",
+        "counting_audios/number_practice.mp3",
+      );
+    }
+  }
+
+  void retryQuiz() {
+    retries.value++;
+    resetQuiz();
+    
+    audioService.setInstructionAndSpeak(
+      "Let's try matching numbers again! Listen carefully to the number.",
+      "counting_audios/number_retry.mp3",
+    );
+  }
+
   void checkAnswerAndNavigate() {
-     Future.delayed(const Duration(seconds: 5), () {
-      // Navigate to the next screen
-      Get.to(() => const countingsequence());
-      
-
-    });
-}
-
+    if (showCompletion.value) {
+      Future.delayed(const Duration(seconds: 3), () {
+        Get.to(() => const countingsequence());
+      });
+    }
+  }
 
   void nextQuestion() {
     if (currentQuestion.value < totalQuestions.value) {
       currentQuestion.value++;
       loadQuestion(currentQuestion.value - 1);
     } else {
-      showCompletion.value = true;
+      completeQuiz();
     }
   }
 
+  // // Replay the current number
+  // void replayNumber() {
+  //   if (currentQuestionData.containsKey("audio")) {
+  //     audioService.playSoundEffect(currentQuestionData["audio"]);
+  //   } else {
+  //     audioService.speak("$currentNumber");
+  //   }
+  // }
+
   @override
   void onClose() {
-    flutterTts.stop();
+    audioService.stopSpeaking();
     super.onClose();
   }
 }

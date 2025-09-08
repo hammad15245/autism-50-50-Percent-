@@ -1,3 +1,4 @@
+import 'package:autism_fyp/views/controllers/progress_controller.dart';
 import 'package:autism_fyp/views/screens/gender_selectionscreen.dart';
 import 'package:autism_fyp/views/screens/home_screen.dart';
 import 'package:autism_fyp/views/screens/locignscreen.dart';
@@ -14,47 +15,39 @@ class AuthController extends GetxController {
   final passwordController = TextEditingController();
   final ageController = TextEditingController();
   final genderController = TextEditingController();
-  final emailController = TextEditingController(); // still required for Firebase Auth
+  final emailController = TextEditingController();
 
   var isLoading = false.obs;
   var passwordError = ''.obs;
 
-  // Password validation method
   bool validatePassword(String password) {
-    // Reset error message
     passwordError.value = '';
 
-    // Check minimum length
     if (password.length < 8) {
       passwordError.value = 'Password must be at least 8 characters long';
       return false;
     }
     
-    // Check for at least one uppercase letter
     if (!password.contains(RegExp(r'[A-Z]'))) {
       passwordError.value = 'Password must contain at least one uppercase letter';
       return false;
     }
     
-    // Check for at least one lowercase letter
     if (!password.contains(RegExp(r'[a-z]'))) {
       passwordError.value = 'Password must contain at least one lowercase letter';
       return false;
     }
     
-    // Check for at least one digit
     if (!password.contains(RegExp(r'[0-9]'))) {
       passwordError.value = 'Password must contain at least one number';
       return false;
     }
     
-    // Check for at least one special character
     if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
       passwordError.value = 'Password must contain at least one special character';
       return false;
     }
     
-    // Check for no whitespace
     if (password.contains(RegExp(r'\s'))) {
       passwordError.value = 'Password cannot contain spaces';
       return false;
@@ -64,9 +57,6 @@ class AuthController extends GetxController {
   }
 
   // ------------------- REGISTER -------------------
-  // inside AuthController
-
-// ------------------- REGISTER -------------------
 Future<void> registerUser(String selectedRole) async {
   final email = emailController.text.trim();
   final password = passwordController.text.trim();
@@ -74,7 +64,6 @@ Future<void> registerUser(String selectedRole) async {
   final gender = genderController.text.trim();
   final username = usernamecontroller.text.trim();
 
-  // Validate password before proceeding
   if (!validatePassword(password)) {
     Get.snackbar(
       "Password Error",
@@ -88,20 +77,17 @@ Future<void> registerUser(String selectedRole) async {
   try {
     isLoading.value = true;
 
-    // Create user in Firebase Auth
     UserCredential userCred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    String uid = userCred.user!.uid;
-
-    // Determine collection based on role
-    String collectionName =
+    final String uid = userCred.user!.uid;
+    final String collectionName =
         selectedRole.toLowerCase() == 'parent' ? 'parents' : 'users';
 
-    // Prepare user data WITH progress embedded
-    Map<String, dynamic> userData = {
+    // Prepare user data
+    final Map<String, dynamic> userData = {
       "uid": uid,
       "email": email,
       "age": age,
@@ -110,36 +96,46 @@ Future<void> registerUser(String selectedRole) async {
       "role": selectedRole.toLowerCase(),
       "avatar": null,
       "createdAt": FieldValue.serverTimestamp(),
-      "progress": selectedRole.toLowerCase() == "users"
-          ? {
-              "completedLessons": [],
-              "stars": 0,
-              "lastUpdated": FieldValue.serverTimestamp(),
-            }
-          : null, // Parents don’t need progress
     };
 
-    // Save to appropriate collection
+    // Save user data
     await _firestore.collection(collectionName).doc(uid).set(userData);
+    ProgressController.to.createInitialProgress();
+
+    if (selectedRole.toLowerCase() == "users") {
+      final progressRef = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('progress')
+          .doc('overview');
+
+      final progressData = {
+        "totalScore": 0,
+        "completedModules": [],
+        "lastUpdated": FieldValue.serverTimestamp(),
+      };
+
+      await progressRef.set(progressData);
+    }
 
     Get.offAll(() => const LoginScreen());
     Get.snackbar("Success", "Account created successfully as $selectedRole!");
   } on FirebaseAuthException catch (e) {
+    String errorMessage;
     if (e.code == 'weak-password') {
-      Get.snackbar(
-        "Weak Password",
-        "The password provided is too weak.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      errorMessage = "The password provided is too weak.";
+    } else if (e.code == 'email-already-in-use') {
+      errorMessage = "This email is already registered.";
     } else {
-      Get.snackbar(
-        "Registration Failed",
-        e.message ?? "An error occurred",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      errorMessage = e.message ?? "An error occurred";
     }
+
+    Get.snackbar(
+      "Registration Failed",
+      errorMessage,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   } catch (e) {
     Get.snackbar(
       "Registration Failed",
@@ -151,7 +147,6 @@ Future<void> registerUser(String selectedRole) async {
     isLoading.value = false;
   }
 }
-
   // ------------------- LOGIN -------------------
   Future<void> loginUser() async {
     final email = usernamecontroller.text.trim();

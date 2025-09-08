@@ -278,7 +278,7 @@ Obx(() => controller.showFeedback.value
           if (controller.isCorrect.value && controller.isLastQuestion)
             ElevatedButton(
               onPressed: () {
-                controller.resetQuiz(); 
+                controller.checkAnswerAndNavigate(); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0E83AD),

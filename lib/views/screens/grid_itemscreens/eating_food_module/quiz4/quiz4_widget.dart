@@ -35,9 +35,9 @@ class HealthyTreatQuiz extends StatelessWidget {
             Text(
               current["question"],
               style: TextStyle(
-                  fontSize: screenWidth * 0.045, fontWeight: FontWeight.w600, color: Color(0xFF0E83AD)),
+                  fontSize: screenWidth * 0.040, fontWeight: FontWeight.w600, color: Color(0xFF0E83AD)),
             ),
-            SizedBox(height: screenHeight * 0.02),
+            SizedBox(height: 15),
 
     Row(
   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -48,8 +48,8 @@ class HealthyTreatQuiz extends StatelessWidget {
           Image.asset(
             healthy["icon"],
             fit: BoxFit.contain,
-            width: screenWidth * 0.40,
-            height: screenWidth * 0.40,
+            width: screenWidth * 0.35,
+            height: screenWidth * 0.35,
           ),
           SizedBox(height: 5),
           Text(
@@ -70,8 +70,8 @@ class HealthyTreatQuiz extends StatelessWidget {
           Image.asset(
             treat["icon"],
             fit: BoxFit.contain,
-            width: screenWidth * 0.40,
-            height: screenWidth * 0.40,
+            width: screenWidth * 0.35,
+            height: screenWidth * 0.35,
           ),
           SizedBox(height: 5),
           Text(
@@ -155,7 +155,7 @@ class HealthyTreatQuiz extends StatelessWidget {
         ),
         SizedBox(height: screenHeight * 0.02),
         ElevatedButton(
-          onPressed: () => controller.resetQuiz(),
+          onPressed: (){},
           style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0E83AD),
               padding: EdgeInsets.symmetric(
@@ -164,7 +164,7 @@ class HealthyTreatQuiz extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30))),
           child: Text(
-            "Play Again",
+            "Cntinue ",
             style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white),
           ),
         )

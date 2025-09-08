@@ -37,16 +37,16 @@ class NumberMatchQuiz extends StatelessWidget {
               color: Color(0xFF0E83AD),
             ),
           )),
-          SizedBox(height: 5),
+          SizedBox(height: 10),
           Obx(() => LinearProgressIndicator(
             value: controller.currentQuestion.value / controller.totalQuestions.value,
             backgroundColor: Colors.grey[300],
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
           )),
-          SizedBox(height: 10),
+          SizedBox(height: 20),
           
           Obx(() => _buildNumberCard(controller.currentNumber.value, screenWidth)),
-          SizedBox(height: 10),
+          SizedBox(height: 20),
           
            _buildOptionsGrid(screenWidth, screenHeight),
           
@@ -54,10 +54,10 @@ class NumberMatchQuiz extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: Center(
               child: Obx(() => controller.showCompletion.value
-                ? _buildCompletionButtons(screenWidth, screenHeight)
-                : _buildNextButton(screenWidth, screenHeight)),
+                  ? _buildCompletionButtons(screenWidth, screenHeight)
+                  : SizedBox.shrink(),
             ),
-          ),
+                   ),         ),
         ],
       ),
     );
@@ -151,25 +151,25 @@ class NumberMatchQuiz extends StatelessWidget {
     );
   }
 
-  Widget _buildNextButton(double screenWidth, double screenHeight) {
-    return ElevatedButton(
-      onPressed: controller.nextQuestion,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF0E83AD),
-        padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.06,
-          vertical: screenHeight * 0.02,
-        ),
-      ),
-      child: Text(
-        "Next Question",
-        style: TextStyle(
-          fontSize: screenWidth * 0.04,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
+  // Widget _buildNextButton(double screenWidth, double screenHeight) {
+  //   return ElevatedButton(
+  //     onPressed: controller.nextQuestion,
+  //     style: ElevatedButton.styleFrom(
+  //       backgroundColor: Color(0xFF0E83AD),
+  //       padding: EdgeInsets.symmetric(
+  //         horizontal: screenWidth * 0.06,
+  //         vertical: screenHeight * 0.02,
+  //       ),
+  //     ),
+  //     child: Text(
+  //       "Next Question",
+  //       style: TextStyle(
+  //         fontSize: screenWidth * 0.04,
+  //         color: Colors.white,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildCompletionButtons(double screenWidth, double screenHeight) {
     return Column(
@@ -182,14 +182,14 @@ class NumberMatchQuiz extends StatelessWidget {
             color: Colors.green[700],
           ),
         ),
-        SizedBox(height:5),
-        Text(
-          "Score: ${controller.score.value}/${controller.totalQuestions.value}",
-          style: TextStyle(
-            fontSize: screenWidth * 0.045,
-            color: Color(0xFF0E83AD),
-          ),
-        ),
+        // SizedBox(height:5),
+        // Text(
+        //   "Score: ${controller.score.value}/${controller.totalQuestions.value}",
+        //   style: TextStyle(
+        //     fontSize: screenWidth * 0.045,
+        //     color: Color(0xFF0E83AD),
+        //   ),
+        // ),
         SizedBox(height:7),
         ElevatedButton(
           onPressed: controller.checkAnswerAndNavigate,

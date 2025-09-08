@@ -5,6 +5,7 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/Going-to-bed_module/qu
 import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz2/quiz2_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz2/quiz2_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/wakeup_module/quiz3_progress_header.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -32,7 +33,7 @@ class matchsoundscreen extends StatelessWidget {
               /// Progress header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: StepProgressHeader(
+                child: breakfastStepProgressHeader(
                   currentStep: 2,
                   onBack: () => Navigator.pop(context),
                 ),

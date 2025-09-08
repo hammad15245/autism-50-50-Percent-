@@ -1,3 +1,4 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz2/quiz2_screen.dart';
 import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
@@ -16,7 +17,7 @@ class FruitMathController extends GetxController {
   final List<Map<String, dynamic>> questions = [
     {
       "type": "addition",
-      "instruction": "Collect fruits for your fruit salad!",
+      "instruction": "Collect the required fruits for your fruit salad!",
       "audio": "fruitmath_question1",
       "target": [
         {"type": "apple", "count": 2},
@@ -34,11 +35,11 @@ class FruitMathController extends GetxController {
     },
     {
       "type": "subtraction", 
-      "instruction": "Remove some fruits from the basket!",
+      "instruction": "Remove these fruits from the basket!",
       "audio": "fruitmath_question2",
       "initialBasket": [
         {"type": "apple", "count": 4},
-        {"type": "banana", "count": 3},
+        {"type": "banana", "count": 2},
         {"type": "orange", "count": 2},
         {"type": "grape", "count": 1},
       ],
@@ -59,7 +60,7 @@ class FruitMathController extends GetxController {
   void onInit() {
     super.onInit();
     audioService.setInstructionAndSpeak(
-      "Welcome to Fruit Basket Math! Drag fruits to solve problems.",
+      "Hey kiddo welcome to this quiz. In this quiz we will learn to make salad by adding and subtracting fruits.",
       "goingbed_audios/fruitmath_intro.mp3",
     ).then((_) {
       Future.delayed(const Duration(seconds: 2), () {
@@ -150,19 +151,27 @@ class FruitMathController extends GetxController {
     }
   }
 
-  void resetQuiz() {
-    score.value = 0;
-    currentQuestionIndex.value = 0;
-    audioService.setInstructionAndSpeak(
-      "Let's try the fruit math again!",
-      "goingbed_audios/fruitmath_reset.mp3",
-    ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadCurrentQuestion();
-      });
-    });
-  }
+  // void resetQuiz() {
+  //   score.value = 0;
+  //   currentQuestionIndex.value = 0;
+  //   audioService.setInstructionAndSpeak(
+  //     "Let's try the fruit math again!",
+  //     "goingbed_audios/fruitmath_reset.mp3",
+  //   ).then((_) {
+  //     Future.delayed(const Duration(seconds: 2), () {
+  //       loadCurrentQuestion();
+  //     });
+  //   });
+  // }
 
+  void checkAnswerAndNavigate() {
+     
+      // Navigate to the next screen
+      Get.to(() => const NumberLinescreen());
+      
+
+    
+}
   Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
   bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;
 }
