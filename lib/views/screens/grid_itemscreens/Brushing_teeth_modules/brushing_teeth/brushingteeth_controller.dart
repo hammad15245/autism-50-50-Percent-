@@ -1,141 +1,44 @@
+// brushing_teeth_quiz1_controller.dart
+import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth_module_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:get/get.dart';
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
-class BrushingTeethController extends ChangeNotifier {
-  final int totalLevels;
-  int completedLevels = 0;
-  static final BrushingTeethController instance = BrushingTeethController();
-  final ValueNotifier<int> currentRating = ValueNotifier<int>(0);
+class BrushingTeethQuiz1Controller extends GetxController {
+  final audioService = AudioInstructionService.to;
+  final brushingTeethController = Get.find<BrushingTeethModuleController>();
 
-  BrushingTeethController({this.totalLevels = 5});
+  RxString get instructionText => audioService.instructionText;
+  RxBool get isSpeaking => audioService.isSpeaking;
 
-  void completeLevel() {
-    if (completedLevels < totalLevels) {
-      completedLevels++;
-      notifyListeners();
-    }
-  }
-
-  void resetProgress() {
-    completedLevels = 0;
-    notifyListeners();
-  }
-  
-
-  List<Widget> getStars({double size = 32.0}) {
-    return List.generate(
-      totalLevels,
-      (index) => Icon(
-        index < completedLevels ? Icons.star : Icons.star_border,
-        color: Colors.amber,
-        size: size,
-      ),
-    );
-  }
-
-  bool get isCompleted => completedLevels == totalLevels;
- }
-
-// class BrushingTeethQuiz extends StatefulWidget {
-//   final List<String> options;
-//   final String correctAnswer;
-//   final void Function(String selected) onAnswered;
-
-//   const BrushingTeethQuiz({
-//     Key? key,
-//     required this.options,
-//     required this.correctAnswer,
-//     required this.onAnswered, required Null Function(dynamic isCorrect) onAnswerSelected,
-//   }) : super(key: key);
-
-//   @override
-//   _BrushingTeethQuizState createState() => _BrushingTeethQuizState();
-// }
-
-// class _BrushingTeethQuizState extends State<BrushingTeethQuiz> {
-//   String? _selectedAnswer;
-
-//   void _handleTap(String selected) {
-//     if (_selectedAnswer != null) return;
-
-//     setState(() {
-//       _selectedAnswer = selected;
-//     });
-
-//     widget.onAnswered(selected);
-
-//     Future.delayed(const Duration(milliseconds: 300), () {
-//       showDialog(
-//         context: context,
-//         builder: (context) => AlertDialog(
-//           title: Text(selected == widget.correctAnswer ? 'Congratulations!' : 'Try Again'),
-//           content: Text(selected == widget.correctAnswer
-//               ? 'You selected the correct answer.'
-//               : 'That was not the correct answer.'),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.of(context).pop(),
-//               child: const Text('OK'),
-//             ),
-//           ],
-//         ),
-//       );
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return GridView.count(
-//       shrinkWrap: true,
-//       crossAxisCount: 2,
-//       mainAxisSpacing: 12,
-//       crossAxisSpacing: 12,
-//       childAspectRatio: 1.0, // makes buttons square
-//       padding: const EdgeInsets.all(12),
-//       children: widget.options.map((option) {
-//         final bool isSelected = _selectedAnswer != null && _selectedAnswer == option;
-//         final bool isCorrect = isSelected && option == widget.correctAnswer;
-//         final bool isWrong = isSelected && option != widget.correctAnswer;
-
-//         return ElevatedButton(
-//           onPressed: _selectedAnswer == null ? () => _handleTap(option) : null,
-//           style: ElevatedButton.styleFrom(
-//             backgroundColor: isCorrect
-//                 ? Colors.green
-//                 : isWrong
-//                     ? Colors.red
-//                     : Colors.blue,
-//             foregroundColor: Colors.white,
-//             padding: const EdgeInsets.all(8),
-//             shape: RoundedRectangleBorder(
-//               borderRadius: BorderRadius.circular(12),
-//             ),
-//           ),
-//           child: Text(
-//             option,
-//             textAlign: TextAlign.center,
-//             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//           ),
-//         );
-//       }).toList(),
-//     );
-//   }
-// }
-
-// answer logic
-
-class AnswerController extends GetxController {
   var hasAnswered = false.obs;
   var selectedIndex = (-1).obs;
-  int correctIndex = -1;
-  var showFeedback = false.obs; // New observable for feedback visibility
+  var showFeedback = false.obs;
+  var isCorrect = false.obs;
+  var retries = 0.obs;
 
-  void initialize(int totalButtons, int correctAnswerIndex) {
+  final List<String> options = ['Toothbrush', 'Spoon', 'Comb', 'Towel'];
+  final String correctAnswer = 'Toothbrush';
+  int correctIndex = 0;
+
+  @override
+  void onInit() {
+    super.onInit();
+    correctIndex = options.indexOf(correctAnswer);
+    
+    Future.delayed(Duration.zero, () {
+      audioService.setInstructionAndSpeak(
+        "Hey kiddos! Welcome to this module. Lets learn about brushing teeth! What do we use for brushing our teeth?",
+        "goingbed_audios/brushing_teeth_intro.mp3",
+      );
+    });
+  }
+
+  void initializeQuiz() {
     hasAnswered.value = false;
     selectedIndex.value = -1;
-    correctIndex = correctAnswerIndex;
-    showFeedback.value = false; // Reset feedback when initializing
+    showFeedback.value = false;
+    isCorrect.value = false;
   }
 
   void selectAnswer(int index) {
@@ -143,14 +46,57 @@ class AnswerController extends GetxController {
     
     selectedIndex.value = index;
     hasAnswered.value = true;
-    showFeedback.value = true; // Show feedback when answer is selected
+    showFeedback.value = true;
     
-    // Hide feedback after a delay (for cross animation)
-    if (index != correctIndex) {
-      Future.delayed(const Duration(seconds: 2), () {
-        showFeedback.value = false;
+    final isAnswerCorrect = index == correctIndex;
+    isCorrect.value = isAnswerCorrect;
+    
+    if (isAnswerCorrect) {
+      audioService.playCorrectFeedback();
+      audioService.setInstructionAndSpeak(
+        "Correct! We use a toothbrush for brushing teeth!",
+        "brushing_teeth_audios/quiz1_correct.mp3",
+      );
+      
+      // Record successful quiz completion
+      brushingTeethController.recordQuizResult(
+        quizId: "quiz1",
+        score: 1,
+        retries: retries.value,
+        isCompleted: true,
+        wrongAnswersCount: 0,
+      );
+      
+      brushingTeethController.syncModuleProgress();
+      
+    } else {
+      retries.value++;
+      audioService.playIncorrectFeedback();
+      
+      // Record wrong answer
+      brushingTeethController.recordWrongAnswer(
+        quizId: "quiz1",
+        wrongAnswer: options[index],
+        correctAnswer: correctAnswer,
+      );
+      
+      audioService.setInstructionAndSpeak(
+        "That's not quite right. We use a toothbrush for brushing teeth.",
+        "brushing_teeth_audios/quiz1_incorrect.mp3",
+      );
+      
+      // Auto-reset after delay for wrong answers
+      Future.delayed(const Duration(seconds: 3), () {
+        resetAnswer();
       });
     }
+  }
+
+  void resetAnswer() {
+    hasAnswered.value = false;
+    selectedIndex.value = -1;
+    showFeedback.value = false;
+    isCorrect.value = false;
   }
 
   Color getButtonColor(int index) {
@@ -160,49 +106,30 @@ class AnswerController extends GetxController {
       return index == correctIndex ? Colors.green : Colors.red;
     }
     
-    return const Color(0xFF0E83AD); // keep unselected ones blue
+    if (hasAnswered.value && index == correctIndex) {
+      return Colors.green;
+    }
+    
+    return const Color(0xFF0E83AD);
   }
 
   bool isButtonDisabled(int index) {
-    return hasAnswered.value && index == selectedIndex.value;
+    return hasAnswered.value;
   }
 
-  // Helper method to check if selected answer is correct
-  bool isCorrectAnswer() {
-    return hasAnswered.value && selectedIndex.value == correctIndex;
+  void retryQuiz() {
+    retries.value++;
+    initializeQuiz();
+    
+    audioService.setInstructionAndSpeak(
+      "Let's try again! What do we use for brushing teeth?",
+      "brushing_teeth_audios/quiz1_retry.mp3",
+    );
+  }
+
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
   }
 }
-
-
-
-// // color_changing_button
-// class ColorChangingButton extends StatelessWidget {
-//   final String text;
-//   final VoidCallback onPressed;
-//   final Color color;
-//   final bool isDisabled;
-
-//   const ColorChangingButton({
-//     super.key,
-//     required this.text,
-//     required this.onPressed,
-//     required this.color,
-//     required this.isDisabled,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ElevatedButton(
-//       onPressed: isDisabled ? null : onPressed,
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: color,
-//         foregroundColor: Colors.white,
-//         padding: const EdgeInsets.symmetric(vertical: 12),
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//       ),
-//       child: Text(text, style: const TextStyle(fontSize: 16)),
-//     );
-//   }
-// }

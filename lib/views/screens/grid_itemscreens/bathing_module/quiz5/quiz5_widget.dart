@@ -18,27 +18,22 @@ class AfterBathQuiz extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
   
-          // SizedBox(height: screenHeight * 0.02),
-          Text("Arrange the steps in the correct order",
-              style: TextStyle(
-                  fontSize: screenWidth * 0.04, color: Color(0xFF0E83AD)),
-              textAlign: TextAlign.center),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 10),
           Obx(() => Text(
               "${controller.currentSequence.length}/${controller.totalSteps.value} steps placed",
               style: TextStyle(
-                  fontSize: screenWidth * 0.04, // Fixed font size calculation
+                  fontSize: screenWidth * 0.04, 
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF0E83AD)))),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 10),
           Text("Available Steps:",
               style: TextStyle(
                   fontSize: screenWidth * 0.045,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF0E83AD))),
-          SizedBox(height: screenHeight * 0.01),
+          SizedBox(height: 20),
           _buildAvailableSteps(screenWidth, screenHeight),
-          SizedBox(height: screenHeight * 0.03),
+          SizedBox(height: 15),
           Text("After Bath Sequence:",
               style: TextStyle(
                   fontSize: screenWidth * 0.045,

@@ -1,9 +1,12 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz2/quiz2_screen.dart';
 import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/add_subtract_module_controller.dart';
 
 class FruitMathController extends GetxController {
   final audioService = AudioInstructionService.to;
+  final addSubtractModuleController = Get.find<AddSubtractModuleController>();
+  
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
@@ -13,6 +16,10 @@ class FruitMathController extends GetxController {
   var showFeedback = false.obs;
   var isCorrect = false.obs;
   var score = 0.obs;
+  var retries = 0.obs;
+  var wrongAttempts = 0.obs;
+  var hasSubmitted = false.obs;
+  var showCompletion = false.obs;
 
   final List<Map<String, dynamic>> questions = [
     {
@@ -72,6 +79,7 @@ class FruitMathController extends GetxController {
   void loadCurrentQuestion() {
     basketItems.clear();
     showFeedback.value = false;
+    isCorrect.value = false;
     final currentQuestion = questions[currentQuestionIndex.value];
     
     availableFruits.assignAll(List.from(currentQuestion["availableFruits"]));
@@ -100,14 +108,18 @@ class FruitMathController extends GetxController {
   }
 
   void addToBasket(Map<String, dynamic> fruit) {
+    if (hasSubmitted.value) return;
     basketItems.add(fruit);
   }
 
   void removeFromBasket(Map<String, dynamic> fruit) {
+    if (hasSubmitted.value) return;
     basketItems.remove(fruit);
   }
 
   void checkAnswer() {
+    if (hasSubmitted.value) return;
+    
     final currentQuestion = questions[currentQuestionIndex.value];
     final target = List<Map<String, dynamic>>.from(currentQuestion["target"]);
     
@@ -133,8 +145,22 @@ class FruitMathController extends GetxController {
     if (correct) {
       score.value++;
       audioService.playCorrectFeedback();
+      
+      // Record successful question completion
+      if (isLastQuestion) {
+        completeQuiz();
+      }
     } else {
+      wrongAttempts.value++;
       audioService.playIncorrectFeedback();
+      
+      // Record wrong attempt
+      addSubtractModuleController.recordWrongAnswer(
+        quizId: "quiz1",
+        questionId: "Question ${currentQuestionIndex.value + 1}",
+        wrongAnswer: "Incorrect fruit selection",
+        correctAnswer: "Target: ${target.map((t) => "${t['count']} ${t['type']}").join(', ')}",
+      );
     }
   }
 
@@ -143,35 +169,82 @@ class FruitMathController extends GetxController {
       currentQuestionIndex.value++;
       loadCurrentQuestion();
     } else {
-      showFeedback.value = false;
-      audioService.setInstructionAndSpeak(
-        "Amazing! You completed the Fruit Math challenge!",
-        "goingbed_audios/fruitmath_complete.mp3",
-      );
+      completeQuiz();
     }
   }
 
-  // void resetQuiz() {
-  //   score.value = 0;
-  //   currentQuestionIndex.value = 0;
-  //   audioService.setInstructionAndSpeak(
-  //     "Let's try the fruit math again!",
-  //     "goingbed_audios/fruitmath_reset.mp3",
-  //   ).then((_) {
-  //     Future.delayed(const Duration(seconds: 2), () {
-  //       loadCurrentQuestion();
-  //     });
-  //   });
-  // }
+  void completeQuiz() {
+    showCompletion.value = true;
+    hasSubmitted.value = true;
+    
+    audioService.playCorrectFeedback();
+    audioService.setInstructionAndSpeak(
+      "Amazing! You completed the Fruit Math challenge!",
+      "goingbed_audios/fruitmath_complete.mp3",
+    );
+    
+    // Record quiz result
+    addSubtractModuleController.recordQuizResult(
+      quizId: "quiz1",
+      score: score.value,
+      retries: retries.value,
+      isCompleted: true,
+      wrongAnswersCount: wrongAttempts.value,
+    );
+    
+    // Sync progress
+    addSubtractModuleController.syncModuleProgress();
+  }
+
+  void resetQuiz() {
+    currentQuestionIndex.value = 0;
+    basketItems.clear();
+    showFeedback.value = false;
+    isCorrect.value = false;
+    score.value = 0;
+    retries.value++;
+    wrongAttempts.value = 0;
+    hasSubmitted.value = false;
+    showCompletion.value = false;
+    
+    audioService.setInstructionAndSpeak(
+      "Let's try the fruit math again!",
+      "goingbed_audios/fruitmath_reset.mp3",
+    ).then((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        loadCurrentQuestion();
+      });
+    });
+  }
 
   void checkAnswerAndNavigate() {
-     
+    if (hasSubmitted.value && showCompletion.value) {
       // Navigate to the next screen
       Get.to(() => const NumberLinescreen());
-      
+    } else {
+      checkAnswer();
+    }
+  }
 
-    
-}
+  // Progress tracking methods
+  double getProgressPercentage() {
+    return (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
+  }
+
+  int getRemainingQuestions() {
+    return questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
+  }
+
+  String getCurrentQuestionProgress() {
+    return "Question ${currentQuestionIndex.value + 1}/${questions.length}";
+  }
+
   Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
   bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;
+
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
+  }
 }

@@ -1,106 +1,121 @@
-import 'package:autism_fyp/views/controllers/quizresult_controller.dart';
+
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushing_teethquiz1.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz2/screen.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
+
+import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/step_progressquiz3.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
-import 'package:confetti/confetti.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BrushingteethScreen extends StatefulWidget {
+class BrushingteethScreen extends StatelessWidget {
   const BrushingteethScreen({super.key});
 
   @override
-  State<BrushingteethScreen> createState() => _BrushingteethScreenState();
-}
-
-class _BrushingteethScreenState extends State<BrushingteethScreen> {
-  final AnswerController answerController = Get.put(AnswerController());
-  final brushingController = BrushingTeethController.instance;
-
-final ConfettiController confettiController =
-    ConfettiController(duration: const Duration(seconds: 2));
-
-  @override
-  void initState() {
-    super.initState();
-    // confettiController =
-    //     ConfettiController(duration: const Duration(seconds: 2));
-
-    // Listen for answer changes to trigger animations
-    ever(answerController.hasAnswered, (answered) {
-      if (answered == true) {
-        if (answerController.isCorrectAnswer()) {
-          confettiController.play();
-        }
-      }
-    });
-void _handleAnswer(int index) {
-  if (!answerController.hasAnswered.value) {
-    answerController.selectAnswer(index);
-
-    bool correct = answerController.isCorrectAnswer();
-    if (correct) {
-      confettiController.play();
-    }
-
-    // ✅ Update the total score in Firebase
-    QuizScoreService().updateTotalScoreByEmail(isCorrect: correct);
-
-    // Delay and go to next screen
-    Future.delayed(const Duration(seconds: 5), () {
-      Get.to(() => const Quiz2screen());
-    });
-  }
-}
-
-
-  }
-
-  @override
-  void dispose() {
-    confettiController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final BrushingTeethQuiz1Controller controller = Get.put(BrushingTeethQuiz1Controller());
+    final AvatarController avatarController = Get.put(AvatarController());
+
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: SafeArea(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: screenHeight * 0.06),
+              SizedBox(height: screenHeight * 0.04),
+
+              /// Progress header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    StepProgressHeader(
-                      currentStep: 1,
-                      onBack: () => Navigator.pop(context),
-                    ),
-                  
-                  ],
+                child: StepProgressHeader(
+                  currentStep: 1,
+                  onBack: () => Navigator.pop(context),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.15),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'What does this picture refer to?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        /// Avatar
+                        Obx(() {
+                          final avatarPath = avatarController.avatarPath.value;
+                          if (avatarPath.isEmpty) {
+                            return const SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return Image.asset(
+                            avatarPath,
+                            height: screenHeight * 0.10,
+                            width: screenWidth * 0.20,
+                            fit: BoxFit.contain,
+                          );
+                        }),
+
+                        const SizedBox(width: 16),
+
+                        /// Instruction Text (sync with TTS)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(2, 4),
+                                ),
+                              ],
+                            ),
+                            child: Obx(
+                              () => Text(
+                                controller.instructionText.value, 
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.04),
 
-              // ✅ Image with animations overlay
+              const SizedBox(height: 30),
+
+              /// Quiz Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "What do we use for brushing teeth?",
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+SizedBox(height: screenHeight * 0.04),
+
               Center(
                 child: Stack(
                   alignment: Alignment.center,
@@ -111,38 +126,14 @@ void _handleAnswer(int index) {
                       fit: BoxFit.contain,
                     ),
 
-                    // 🎉 Confetti animation for correct answer
-                    ConfettiWidget(
-                      confettiController: confettiController,
-                      blastDirectionality: BlastDirectionality.explosive,
-                      shouldLoop: false,
-                      emissionFrequency: 0.05,
-                      numberOfParticles: 20,
-                      gravity: 0.3,
-                    ),
-
-                    // Cross animation for wrong answer
-                    Obx(() {
-                      if (answerController.showFeedback.value &&
-                          !answerController.isCorrectAnswer()) {
-                        return AnimatedOpacity(
-                          opacity: 1,
-                          duration: const Duration(milliseconds: 300),
-                          child:
-                              const Icon(Icons.close, color: Colors.red, size: 150),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
+              
                   ],
                 ),
               ),
+              SizedBox(height: screenHeight * 0.01),
 
-              SizedBox(height: screenHeight * 0.02),
-
-              Center(
-                child: BrushingTeethQuiz(),
-              ),
+              /// Quiz Widget
+               Center(child: BrushingTeethQuiz()),
             ],
           ),
         ),

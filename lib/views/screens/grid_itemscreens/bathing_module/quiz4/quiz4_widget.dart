@@ -1,4 +1,5 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz4/quiz4_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz5/quiz5_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,12 +13,11 @@ class SensoryQuiz extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return SingleChildScrollView( // Add this wrapper
+    return SingleChildScrollView(
       padding: EdgeInsets.all(screenWidth * 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-   
           Text(
             "Drag sensations to matching bath items",
             style: TextStyle(
@@ -53,7 +53,7 @@ class SensoryQuiz extends StatelessWidget {
           ),
           SizedBox(height: screenHeight * 0.01),
           _buildSensationsGrid(screenWidth, screenHeight),
-          SizedBox(height: screenHeight * 0.02), // Reduced from 0.03
+          SizedBox(height: screenHeight * 0.02),
           Text(
             "Bath Items",
             style: TextStyle(
@@ -64,14 +64,160 @@ class SensoryQuiz extends StatelessWidget {
           ),
           SizedBox(height: screenHeight * 0.01),
           _buildItemsGrid(screenWidth, screenHeight),
+          
+          // Add the feedback section here
+          SizedBox(height: screenHeight * 0.03),
+          Obx(() => controller.showCompletion.value 
+              ? _buildCompletionFeedback(context) 
+              : _buildCheckButton(context)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckButton(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return ElevatedButton(
+      onPressed: controller.checkAnswerAndNavigate,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF0E83AD),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.06,
+          vertical: 15,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Text(
+        "Check Answer",
+        style: TextStyle(
+          fontSize: screenWidth * 0.04,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletionFeedback(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    final bool isPerfect = controller.wrongPlacements.value == 0;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.01),
+      decoration: BoxDecoration(
+        color: isPerfect ? Colors.green.shade50 : Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: isPerfect ? Colors.green.shade200 : Colors.blue.shade200,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Success Icon and Message
+          Icon(
+            isPerfect ? Icons.check_circle : Icons.emoji_events,
+            color: isPerfect ? Colors.green : Colors.blue,
+            size: screenWidth * 0.1,
+          ),
+          
+          SizedBox(height: screenHeight * 0.01),
+          
+          Text(
+            isPerfect ? "Perfect Match! 🎉" : "Good Job!",
+            style: TextStyle(
+              fontSize: screenWidth * 0.05,
+              fontWeight: FontWeight.bold,
+              color: isPerfect ? Colors.green.shade800 : Colors.blue.shade800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+   
+          
+          if (!isPerfect) SizedBox(height: screenHeight * 0.01),
+          
+          if (!isPerfect)
+            Text(
+              "Keep practicing to make perfect matches!",
+              style: TextStyle(
+                fontSize: screenWidth * 0.035,
+                color: Colors.orange.shade700,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          
+          SizedBox(height: screenHeight * 0.02),
+          
+          // Action Buttons in a row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Continue Button
+              ElevatedButton(
+                onPressed: () {
+                  // Get.to(() => const afterbathscreen());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenHeight * 0.015,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "Continue",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              
+              // Try Again Button
+              ElevatedButton(
+                onPressed: controller.resetQuiz,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenHeight * 0.015,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "Try Again",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+    
         ],
       ),
     );
   }
 
   Widget _buildSensationsGrid(double screenWidth, double screenHeight) {
-    return Obx(() => SizedBox( // Constrain the height
-      height: screenHeight * 0.30, // Adjust this value as needed
+    return Obx(() => SizedBox(
+      height: screenHeight * 0.30,
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -125,7 +271,6 @@ class SensoryQuiz extends StatelessWidget {
           ],
         ),
         child: Center(
-          // Use Image.asset instead of Text for local icons
           child: Image.asset(
             sensation["icon"],
             width: screenWidth * 0.1,
@@ -214,7 +359,6 @@ class SensoryQuiz extends StatelessWidget {
             children: [
               Expanded(
                 child: Center(
-                  // Use Image.asset instead of Text for local icons
                   child: Image.asset(
                     item["icon"],
                     width: screenWidth * 0.12,
@@ -270,7 +414,6 @@ class SensoryQuiz extends StatelessWidget {
           else
             ...placed.map((sensationId) {
               final sensation = controller.getSensation(sensationId);
-              // Use Image.asset instead of Text for local icons
               return Image.asset(
                 sensation["icon"],
                 width: screenWidth * 0.06,

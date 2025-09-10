@@ -1,58 +1,128 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/abc_quiz_progressheader.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_widget.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quizprogressheader.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/progrressheader_bathing.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/homeprogressbar.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_widget.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
 
-class Quiz1Screen extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class Quiz1Screen extends StatelessWidget {
   const Quiz1Screen({super.key});
-
-
-  @override
-  State<Quiz1Screen> createState() => _Quiz1ScreenState();
-}
-
-
-class _Quiz1ScreenState extends State<Quiz1Screen> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
+    final AlphabetQuizController controller = Get.put(AlphabetQuizController());
+    final AvatarController avatarController = Get.put(AvatarController());
+
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: screenHeight * 0.06),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: StepProgressHeader(
-                currentStep: 1,
-                onBack: () => Navigator.pop(context),
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.15),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Find the correct Letter from Picture.',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: screenHeight * 0.04),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: abcstepprogressheader(
+                  currentStep:1,
+                  onBack: () => Navigator.pop(context),
                 ),
               ),
-            ),
-            SizedBox(height: screenHeight * 0.04),
-            // Use the AlphabetQuizScreen widget
-            Expanded(
-              child: AlphabetQuiz(),
-            ),
-          ],
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        /// Avatar
+                        Obx(() {
+                          final avatarPath = avatarController.avatarPath.value;
+                          if (avatarPath.isEmpty) {
+                            return const SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return Image.asset(
+                            avatarPath,
+                            height: screenHeight * 0.10,
+                            width: screenWidth * 0.20,
+                            fit: BoxFit.contain,
+                          );
+                        }),
+
+                        const SizedBox(width: 16),
+
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(2, 4),
+                                ),
+                              ],
+                            ),
+                            child: Obx(
+                              () => Text(
+                                controller.instructionText.value, 
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              /// Quiz Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Find the correct Letter from Picture.",
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: screenHeight * 0.01),
+
+               Center(child: AlphabetQuiz()),
+            ],
+          ),
         ),
       ),
     );

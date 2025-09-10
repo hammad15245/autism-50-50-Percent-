@@ -1,6 +1,8 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz3/quiz3_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz4/quiz4_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 class CleanDirtyQuiz extends StatelessWidget {
   final CleanDirtyController controller = Get.find<CleanDirtyController>();
 
@@ -32,8 +34,7 @@ class CleanDirtyQuiz extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
 
-
-              SizedBox(height: screenHeight * 0.03),
+              SizedBox(height: 15),
 
               // Progress indicator
               Obx(() => LinearProgressIndicator(
@@ -44,7 +45,7 @@ class CleanDirtyQuiz extends StatelessWidget {
                         const AlwaysStoppedAnimation<Color>(Colors.green),
                   )),
 
-              SizedBox(height: screenHeight * 0.02),
+              SizedBox(height: 20),
 
               // Progress text
               Obx(() => Text(
@@ -56,9 +57,8 @@ class CleanDirtyQuiz extends StatelessWidget {
                     ),
                   )),
 
-              SizedBox(height: screenHeight * 0.03),
+              SizedBox(height: 15),
 
-              // Grid (remove Expanded, wrap in SizedBox with fixed height)
               SizedBox(
                 height: screenHeight * 0.6,
                 child: Obx(() => GridView.builder(
@@ -81,59 +81,152 @@ class CleanDirtyQuiz extends StatelessWidget {
 
               SizedBox(height: screenHeight * 0.03),
 
-              // // Buttons
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //   children: [
-              //     Obx(() => ElevatedButton(
-              //           onPressed: controller.showCompletion.value
-              //               ? null
-              //               : controller.checkAnswerAndNavigate,
-              //           style: ElevatedButton.styleFrom(
-              //             backgroundColor: controller.showCompletion.value
-              //                 ? Colors.green
-              //                 : Colors.blue,
-              //             padding: EdgeInsets.symmetric(
-              //               horizontal: screenWidth * 0.06,
-              //               vertical: screenHeight * 0.02,
-              //             ),
-              //           ),
-              //           child: Text(
-              //             controller.showCompletion.value
-              //                 ? "Completed! 🎉"
-              //                 : "Check",
-              //             style: TextStyle(
-              //               fontSize: screenWidth * 0.04,
-              //               color: Colors.white,
-              //             ),
-              //           ),
-              //         )),
-              //     Obx(() => controller.showCompletion.value
-              //         ? ElevatedButton(
-              //             onPressed: controller.resetQuiz,
-              //             style: ElevatedButton.styleFrom(
-              //               backgroundColor: Colors.orange,
-              //               padding: EdgeInsets.symmetric(
-              //                 horizontal: screenWidth * 0.06,
-              //                 vertical: screenHeight * 0.02,
-              //               ),
-              //             ),
-              //             child: Text(
-              //               "Try Again",
-              //               style: TextStyle(
-              //                 fontSize: screenWidth * 0.04,
-              //                 color: Colors.white,
-              //               ),
-              //             ),
-              //           )
-              //         : const SizedBox.shrink()),
-              //   ],
-              // ),
-
-              SizedBox(height: screenHeight * 0.02),
+              // Feedback Section
+              Obx(() => controller.showCompletion.value 
+                  ? _buildCompletionFeedback(context) 
+                  : _buildActionButtons(context)),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return ElevatedButton(
+      onPressed: controller.checkAnswerAndNavigate,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF0E83AD),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.06,
+          vertical: 15,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Text(
+        "Check Answer",
+        style: TextStyle(
+          fontSize: screenWidth * 0.04,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletionFeedback(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Calculate performance metrics
+    final correctSelections = controller.collectedCleanItems.value;
+    final wrongSelections = controller.wrongSelections.value;
+    final totalSelections = correctSelections + wrongSelections;
+    final accuracy = totalSelections > 0 
+        ? (correctSelections / totalSelections * 100).round() 
+        : 0;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      margin: EdgeInsets.only(top: screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: wrongSelections == 0 ? Colors.green.shade50 : Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: wrongSelections == 0 ? Colors.green.shade200 : Colors.blue.shade200,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Success Icon and Message
+          Icon(
+            wrongSelections == 0 ? Icons.check_circle : Icons.emoji_events,
+            color: wrongSelections == 0 ? Colors.green : Colors.blue,
+            size: screenWidth * 0.1,
+          ),
+          
+          SizedBox(height: screenHeight * 0.01),
+          
+          Text(
+            wrongSelections == 0 
+                ? "Excellent! All clean items found!" 
+                : "Great job! You found most of the clean items!",
+            style: TextStyle(
+              fontSize: screenWidth * 0.045,
+              fontWeight: FontWeight.bold,
+              color: wrongSelections == 0 ? Colors.green.shade800 : Colors.blue.shade800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+         
+    
+          SizedBox(height: 15),
+
+          
+          
+          // Action Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Continue Button
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to next quiz or module
+                  Get.to(() => sensoryscreen());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.05,
+                    vertical: screenHeight * 0.015,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "Continue",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              
+              // Try Again Button
+              ElevatedButton(
+                onPressed: controller.resetQuiz,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.05,
+                    vertical: screenHeight * 0.015,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "Try Again",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+ 
+        ],
       ),
     );
   }

@@ -10,7 +10,6 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/q
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/living_nonliving_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/widget/items_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -81,11 +80,9 @@ class LearningItemController extends GetxController {
 
 void navigateToItemScreen(String title, BuildContext context) {
   switch (title.toLowerCase().trim()) {
-    case 'brushing teeth':
-      Get.to(() => ChangeNotifierProvider(
-        create: (_) => BrushingTeethController(),
-        child:  BrushingteethScreen(),
-      ));
+  case 'brushing teeth':
+      Get.to(() => const BrushingteethScreen());
+      
       break;
     case 'abc letters':
       Get.to(() => const Quiz1Screen());
@@ -115,7 +112,7 @@ void navigateToItemScreen(String title, BuildContext context) {
       Get.to(() =>  animalsortingscreen());
       break;
            case 'big and small alphabets':
-      Get.to(() =>  livingnonlivingscreen());
+      // Get.to(() =>  livingnonlivingscreen());
       break;
       //     case 'sounds of alphabets':
       // Get.to(() =>  BucketGame());

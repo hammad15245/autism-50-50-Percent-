@@ -1,9 +1,12 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/quiz2/quiz2_screen.dart';
 import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/birds_module_controller.dart';
 
 class birdcontroller extends GetxController {
   final audioService = AudioInstructionService.to;
+  final birdsModuleController = Get.find<BirdsModuleController>();
+  
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
@@ -12,6 +15,12 @@ class birdcontroller extends GetxController {
   var showFeedback = false.obs;
   var isCorrect = false.obs;
   var score = 0.obs;
+
+  // Progress tracking
+  var retries = 0.obs;
+  var wrongAttempts = 0.obs;
+  var hasSubmitted = false.obs;
+  var showCompletion = false.obs;
 
   final List<Map<String, dynamic>> questions = [
     {
@@ -24,7 +33,6 @@ class birdcontroller extends GetxController {
           "name": "Sparrow",
           "icon": "lib/assets/quiz1_birds/sparrow.png",
         },
-  
         {
           "id": "eagle",
           "name": "Eagle",
@@ -68,6 +76,7 @@ class birdcontroller extends GetxController {
   void loadCurrentQuestion() {
     selectedBird.value = '';
     showFeedback.value = false;
+    isCorrect.value = false;
     
     Future.delayed(const Duration(milliseconds: 500), () {
       playQuestionSound();
@@ -80,6 +89,8 @@ class birdcontroller extends GetxController {
   }
 
   void checkAnswer(String birdId) {
+    if (hasSubmitted.value) return;
+    
     selectedBird.value = birdId;
     final correctAnswer = questions[currentQuestionIndex.value]["correctBird"];
     isCorrect.value = birdId == correctAnswer;
@@ -88,8 +99,22 @@ class birdcontroller extends GetxController {
     if (isCorrect.value) {
       score.value++;
       audioService.playCorrectFeedback();
+      
+      // Record successful question completion
+      if (isLastQuestion) {
+        completeQuiz();
+      }
     } else {
+      wrongAttempts.value++;
       audioService.playIncorrectFeedback();
+      
+      // Record wrong attempt
+      birdsModuleController.recordWrongAnswer(
+        quizId: "quiz1",
+        questionId: "Question ${currentQuestionIndex.value + 1}",
+        wrongAnswer: "Selected $birdId",
+        correctAnswer: "Should select $correctAnswer",
+      );
     }
   }
 
@@ -97,7 +122,32 @@ class birdcontroller extends GetxController {
     if (currentQuestionIndex.value < questions.length - 1) {
       currentQuestionIndex.value++;
       loadCurrentQuestion();
-    } 
+    } else {
+      completeQuiz();
+    }
+  }
+
+  void completeQuiz() {
+    showCompletion.value = true;
+    hasSubmitted.value = true;
+    
+    audioService.playCorrectFeedback();
+    audioService.setInstructionAndSpeak(
+      "Excellent! You identified all the bird sounds correctly!",
+      "goingbed_audios/birds_complete.mp3",
+    );
+    
+    // Record quiz result
+    birdsModuleController.recordQuizResult(
+      quizId: "quiz1",
+      score: score.value,
+      retries: retries.value,
+      isCompleted: true,
+      wrongAnswersCount: wrongAttempts.value,
+    );
+    
+    // Sync progress
+    birdsModuleController.syncModuleProgress();
   }
 
   void retryQuestion() {
@@ -106,28 +156,58 @@ class birdcontroller extends GetxController {
     playQuestionSound(); // Replay the sound for retry
   }
 
-  // void resetQuiz() {
-  //   score.value = 0;
-  //   currentQuestionIndex.value = 0;
-  //   audioService.setInstructionAndSpeak(
-  //     "Let's listen to the bird sounds again!",
-  //     "goingbed_audios/birds_reset.mp3",
-  //   ).then((_) {
-  //     Future.delayed(const Duration(seconds: 2), () {
-  //       loadCurrentQuestion();
-  //     });
-  //   });
-  // }
-   void checkAnswerAndNavigate() {
-     
+  void resetQuiz() {
+    currentQuestionIndex.value = 0;
+    selectedBird.value = '';
+    showFeedback.value = false;
+    isCorrect.value = false;
+    score.value = 0;
+    retries.value++;
+    wrongAttempts.value = 0;
+    hasSubmitted.value = false;
+    showCompletion.value = false;
+    
+    audioService.setInstructionAndSpeak(
+      "Let's listen to the bird sounds again!",
+      "goingbed_audios/birds_reset.mp3",
+    ).then((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        loadCurrentQuestion();
+      });
+    });
+  }
+
+  void checkAnswerAndNavigate() {
+    if (hasSubmitted.value && showCompletion.value) {
       // Navigate to the next screen
       Get.to(() => const BirdHabitatscreen());
-      
+    } else {
+      // If not completed, just check the answer
+      if (selectedBird.value.isNotEmpty) {
+        checkAnswer(selectedBird.value);
+      }
+    }
+  }
 
-    
-}
+  // Progress tracking methods
+  double getProgressPercentage() {
+    return (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
+  }
+
+  int getRemainingQuestions() {
+    return questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
+  }
+
+  String getCurrentQuestionProgress() {
+    return "Question ${currentQuestionIndex.value + 1}/${questions.length}";
+  }
 
   Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
   bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;
-}
 
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
+  }
+}

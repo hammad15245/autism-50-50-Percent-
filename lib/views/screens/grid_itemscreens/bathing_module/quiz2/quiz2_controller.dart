@@ -1,8 +1,10 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/bathing_module_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz3/quiz3_screen.dart';
 import 'package:autism_fyp/views/screens/home_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class BathingSequenceController extends GetxController {
   final List<String> correctStepOrder = [
@@ -15,25 +17,40 @@ class BathingSequenceController extends GetxController {
     "Get dressed"
   ].obs;
 
-
   var stepData = [
-    {"step": "Turn on water", "description": "Start with warm water"},
-    {"step": "Get undressed", "description": "Take off clothes"},
-    {"step": "Get in tub", "description": "Step into bathtub"},
-    {"step": "Wash with soap", "description": "Use soap to clean body"},
-    {"step": "Rinse off", "description": "Wash off all soap"},
-    {"step": "Dry with towel", "description": "Dry yourself completely"},
-    {"step": "Get dressed", "description": "Put on clean clothes"}
+    {"step": "Turn on water", "description": "Start with warm water", "audio": "bathing_audios/turn_on_water.mp3"},
+    {"step": "Get undressed", "description": "Take off clothes", "audio": "bathing_audios/get_undressed.mp3"},
+    {"step": "Get in tub", "description": "Step into bathtub", "audio": "bathing_audios/get_in_tub.mp3"},
+    {"step": "Wash with soap", "description": "Use soap to clean body", "audio": "bathing_audios/wash_with_soap.mp3"},
+    {"step": "Rinse off", "description": "Wash off all soap", "audio": "bathing_audios/rinse_off.mp3"},
+    {"step": "Dry with towel", "description": "Dry yourself completely", "audio": "bathing_audios/dry_with_towel.mp3"},
+    {"step": "Get dressed", "description": "Put on clean clothes", "audio": "bathing_audios/get_dressed.mp3"}
   ].obs;
 
   var currentSequence = <Map<String, String>>[].obs;
-  
   var isSequenceCorrect = false.obs;
   var showCompletion = false.obs;
+  var retries = 0.obs;
+  var wrongAttempts = 0.obs;
+  var hasSubmitted = false.obs;
+
+  final audioService = AudioInstructionService.to;
+  final bathingModuleController = Get.find<BathingModuleController>();
+
+  RxString get instructionText => audioService.instructionText;
+  RxBool get isSpeaking => audioService.isSpeaking;
 
   @override
   void onInit() {
     super.onInit();
+    
+    Future.delayed(Duration.zero, () {
+      audioService.setInstructionAndSpeak(
+        "Great lets Arrange the bathing steps in the correct order! Drag and drop bathing items to sequence them properly.",
+        "goingbed_audios/sequence_quiz2_intro.mp3",
+      );
+    });
+    
     _initializeSequences();
   }
 
@@ -43,7 +60,8 @@ class BathingSequenceController extends GetxController {
     // Start with shuffled order
     currentSequence.assignAll(List.from(stepData)..shuffle());
     
-  
+    // Play shuffle sound
+    // audioService.playSoundEffect("bathing_audios/shuffle.mp3");
   }
 
   void shuffleSequence() {
@@ -51,10 +69,16 @@ class BathingSequenceController extends GetxController {
     currentSequence.addAll(List.from(stepData)..shuffle());
     isSequenceCorrect.value = false;
     showCompletion.value = false;
+    hasSubmitted.value = false;
+    
+    // // Play shuffle sound
+    // audioService.playSoundEffect("bathing_audios/shuffle.mp3");
+    // audioService.speak("Steps shuffled. Try arranging them again!");
   }
 
   void checkallanswerandnavigate() {
-  
+    if (hasSubmitted.value) return;
+    
     if (!_areSequencesValid()) {
       return;
     }
@@ -82,6 +106,7 @@ class BathingSequenceController extends GetxController {
   }
 
   void _showErrorSnackbar(String message) {
+    audioService.playIncorrectFeedback();
     Get.snackbar(
       "Error", 
       message,
@@ -91,39 +116,72 @@ class BathingSequenceController extends GetxController {
     );
   }
 
-void _performSequenceCheck() {
-  List<String> currentStepOrder = currentSequence
-      .map((step) => (step["step"] ?? "").trim().toLowerCase())
-      .toList();
+  void _performSequenceCheck() {
+    hasSubmitted.value = true;
+    
+    List<String> currentStepOrder = currentSequence
+        .map((step) => (step["step"] ?? "").trim().toLowerCase())
+        .toList();
 
-  List<String> correctOrder = correctStepOrder
-      .map((e) => e.trim().toLowerCase())
-      .toList();
+    List<String> correctOrder = correctStepOrder
+        .map((e) => e.trim().toLowerCase())
+        .toList();
 
-  print("Correct: $correctOrder");
-  print("Current: $currentStepOrder");
+    print("Correct: $correctOrder");
+    print("Current: $currentStepOrder");
 
-  bool isCorrect = listEquals(currentStepOrder, correctOrder);
+    bool isCorrect = listEquals(currentStepOrder, correctOrder);
+    isSequenceCorrect.value = isCorrect;
+    showCompletion.value = true;
 
-  isSequenceCorrect.value = isCorrect;
-  showCompletion.value = true;
+    if (isCorrect) {
+      audioService.playCorrectFeedback();
+      audioService.setInstructionAndSpeak(
+        "Perfect! You arranged all bathing steps in the correct order!",
+        "bathing_audios/sequence_perfect.mp3",
+      );
+      
+      // Record quiz result
+      bathingModuleController.recordQuizResult(
+        quizId: "quiz2",
+        score: 1, // Full score for perfect sequence
+        retries: retries.value,
+        isCompleted: true,
+        wrongAnswersCount: wrongAttempts.value,
+      );
+      
+      bathingModuleController.syncModuleProgress();
 
-  if (isCorrect) {
+      Future.delayed(const Duration(seconds: 3), () {
+        Get.off(() => CleanDirtyScreen());
+      });
 
-    Future.delayed(const Duration(seconds: 5), () {
-      Get.off(() => CleanDirtyScreen()); // or Get.to if you want back navigation
-    });
-
-  } else {
-    Get.snackbar(
-      "Almost there!",
-      "Try again to get the order right",
-      backgroundColor: Colors.orange.shade300,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-    );
+    } else {
+      wrongAttempts.value++;
+      audioService.playIncorrectFeedback();
+      
+      // Record wrong attempt
+      bathingModuleController.recordWrongAnswer(
+        quizId: "quiz2",
+        questionId: "Bathing sequence",
+        wrongAnswer: currentStepOrder.join(" → "),
+        correctAnswer: correctOrder.join(" → "),
+      );
+      
+      audioService.setInstructionAndSpeak(
+        "Almost there! Try again to get the bathing order right.",
+        "bathing_audios/sequence_try_again.mp3",
+      );
+      
+      Get.snackbar(
+        "Almost there!",
+        "Try again to get the order right",
+        backgroundColor: Colors.orange.shade300,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
-}
 
   void reorderItems(int oldIndex, int newIndex) {
     if (oldIndex < 0 || oldIndex >= currentSequence.length ||
@@ -135,6 +193,9 @@ void _performSequenceCheck() {
     final item = currentSequence.removeAt(oldIndex);
     currentSequence.insert(newIndex, item);
     
+    // Play reorder sound
+    // audioService.playSoundEffect("bathing_audios/reorder.mp3");
+    
     print("Reordered. New sequence: ${currentSequence.map((e) => e["step"]).toList()}");
   }
 
@@ -142,5 +203,45 @@ void _performSequenceCheck() {
     checkallanswerandnavigate();
   }
 
+  void retrySequence() {
+    retries.value++;
+    hasSubmitted.value = false;
+    showCompletion.value = false;
+    isSequenceCorrect.value = false;
+    shuffleSequence();
+    
+    audioService.setInstructionAndSpeak(
+      "Let's try the bathing sequence again!",
+      "bathing_audios/sequence_retry.mp3",
+    );
+  }
+
+  // Speak step description
+  void speakStepDescription(int index) {
+    if (index < currentSequence.length) {
+      final step = currentSequence[index];
+      final description = step["description"] ?? "";
+      final audio = step["audio"];
+      
+      // if (audio != null) {
+      //   audioService.playSoundEffect(audio);
+      // } else {
+      //   audioService.speak(description);
+      // }
+    }
+  }
+
+  // Get completion percentage
+  double getCompletionProgress() {
+    if (!hasSubmitted.value) return 0.0;
+    return isSequenceCorrect.value ? 1.0 : 0.5;
+  }
+
   bool get allStepsCorrect => isSequenceCorrect.value;
+
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
+  }
 }

@@ -56,107 +56,122 @@ class _Quiz4State extends State<Quiz4matching> {
     double baseSize = screen.width * 0.12;
     final imageSize = baseSize.clamp(60.0, 120.0);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            // Line drawing layer
-            Positioned.fill(
-              child: CustomPaint(
-                painter: MatchLinePainter(
-                  controller: widget.controller,
-                  leftKeys: leftKeys,
-                  rightKeys: rightKeys,
-                  currentLineStart: dragStart,
-                  currentLineEnd: dragCurrent,
-                  getLocalCenter: _getLocalCenter,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              // Line drawing layer
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: MatchLinePainter(
+                    controller: widget.controller,
+                    leftKeys: leftKeys,
+                    rightKeys: rightKeys,
+                    currentLineStart: dragStart,
+                    currentLineEnd: dragCurrent,
+                    getLocalCenter: _getLocalCenter,
+                  ),
                 ),
               ),
-            ),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // LEFT COLUMN
-                Flexible(
-                  flex: 1,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                    children: List.generate(widget.leftImages.length, (index) {
-                      return GestureDetector(
-                        key: leftKeys[index],
-                        onPanStart: (details) {
-                          dragStart = _getLocalCenter(leftKeys[index]);
-                          dragCurrent = dragStart;
-                          selectedLeftIndex = index;
-                          setState(() {});
-                        },
-                        onPanUpdate: (details) {
-                          if (parentBox != null) {
-                            dragCurrent = parentBox!.globalToLocal(details.globalPosition);
-                            setState(() {});
-                          }
-                        },
-                        onPanEnd: (details) {
-                          if (parentBox != null) {
-                            for (int i = 0; i < rightKeys.length; i++) {
-                              final center = _getLocalCenter(rightKeys[i]);
-                              if (center != null) {
-                                final renderBox = rightKeys[i]
-                                    .currentContext!
-                                    .findRenderObject() as RenderBox;
-                                final rect = renderBox.paintBounds.shift(
-                                  parentBox!.globalToLocal(
-                                    renderBox.localToGlobal(Offset.zero),
-                                  ),
-                                );
-                                if (rect.contains(dragCurrent!)) {
-                                  widget.controller.selectMatch(selectedLeftIndex!, i);
+              // Content
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // LEFT COLUMN
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(widget.leftImages.length, (index) {
+                        return Container(
+                          margin: EdgeInsets.symmetric(vertical: imageSize * 0.2),
+                          child: GestureDetector(
+                            key: leftKeys[index],
+                            onPanStart: (details) {
+                              dragStart = _getLocalCenter(leftKeys[index]);
+                              dragCurrent = dragStart;
+                              selectedLeftIndex = index;
+                              setState(() {});
+                            },
+                            onPanUpdate: (details) {
+                              if (parentBox != null) {
+                                dragCurrent = parentBox!.globalToLocal(details.globalPosition);
+                                setState(() {});
+                              }
+                            },
+                            onPanEnd: (details) {
+                              if (parentBox != null) {
+                                for (int i = 0; i < rightKeys.length; i++) {
+                                  final center = _getLocalCenter(rightKeys[i]);
+                                  if (center != null) {
+                                    final renderBox = rightKeys[i]
+                                        .currentContext!
+                                        .findRenderObject() as RenderBox;
+                                    final rect = renderBox.paintBounds.shift(
+                                      parentBox!.globalToLocal(
+                                        renderBox.localToGlobal(Offset.zero),
+                                      ),
+                                    );
+                                    if (rect.contains(dragCurrent!)) {
+                                      widget.controller.selectMatch(selectedLeftIndex!, i);
+                                    }
+                                  }
                                 }
                               }
-                            }
-                          }
-                          dragStart = null;
-                          dragCurrent = null;
-                          selectedLeftIndex = null;
-                          setState(() {});
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: imageSize * 0.12),
-                          child: Image.asset(widget.leftImages[index], height: imageSize),
-                        ),
-                      );
-                    }),
+                              dragStart = null;
+                              dragCurrent = null;
+                              selectedLeftIndex = null;
+                              setState(() {});
+                            },
+                            child: Image.asset(
+                              widget.leftImages[index], 
+                              height: imageSize,
+                              width: imageSize,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
-                ),
 
-                SizedBox(width: constraints.maxWidth * 0.45),
+                  // SPACER - Reduced from 45% to 20-25%
+                  SizedBox(width: constraints.maxWidth * 0.25),
 
-                // RIGHT COLUMN
-                Flexible(
-                  flex: 1,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(widget.rightImages.length, (index) {
-                      return Padding(
-                          padding: EdgeInsets.symmetric(vertical: imageSize * 0.12),
-                        child: Container(
-                          key: rightKeys[index],
-                          child: Image.asset(widget.rightImages[index], height: imageSize),
-                        ),
-                      );
-                    }),
+                  // RIGHT COLUMN
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(widget.rightImages.length, (index) {
+                        return Container(
+                          margin: EdgeInsets.symmetric(vertical: imageSize * 0.2),
+                          child: Container(
+                            key: rightKeys[index],
+                            child: Image.asset(
+                              widget.rightImages[index], 
+                              height: imageSize,
+                              width: imageSize,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
-
 
 class MatchLinePainter extends CustomPainter {
   final Quiz4matchingController controller;
@@ -165,8 +180,6 @@ class MatchLinePainter extends CustomPainter {
   final Offset? currentLineStart;
   final Offset? currentLineEnd;
   final Offset? Function(GlobalKey key) getLocalCenter;
-  var isChecking = false.obs;
-
 
   MatchLinePainter({
     required this.controller,
@@ -184,24 +197,22 @@ class MatchLinePainter extends CustomPainter {
       ..strokeWidth = 3;
 
     // Permanent matches
-controller.userPairs.forEach((left, right) {
-  final p1 = getLocalCenter(leftKeys[left]);
-  final p2 = getLocalCenter(rightKeys[right]);
+    controller.userPairs.forEach((left, right) {
+      final p1 = getLocalCenter(leftKeys[left]);
+      final p2 = getLocalCenter(rightKeys[right]);
 
-  if (p1 != null && p2 != null) {
-    if (controller.isChecking.value) {
-      // ✅ Show green or red if checking
-      final isCorrect = controller.correctPairs[left] == right;
-      paint.color = isCorrect ? Colors.green : Colors.red;
-    } else {
-      // 🟦 Always blue before checking
-      paint.color = const Color(0xFF0E83AD);
-    }
-    canvas.drawLine(p1, p2, paint);
-  }
-});
-
-
+      if (p1 != null && p2 != null) {
+        if (controller.isChecking.value) {
+          // ✅ Show green or red if checking
+          final isCorrect = controller.correctPairs[left] == right;
+          paint.color = isCorrect ? Colors.green : Colors.red;
+        } else {
+          // 🟦 Always blue before checking
+          paint.color = const Color(0xFF0E83AD);
+        }
+        canvas.drawLine(p1, p2, paint);
+      }
+    });
 
     // Current dragging line
     if (currentLineStart != null && currentLineEnd != null) {

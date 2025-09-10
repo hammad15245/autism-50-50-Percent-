@@ -1,90 +1,124 @@
+import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
+
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz3/quiz3_controller.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz3/quiz3_widget.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz4/quiz4_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz4/quiz4_widget.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz5/quiz5_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz5/quiz5_widget.dart';
-import 'package:autism_fyp/views/widget/custom_widget.dart';
-import 'package:flutter/material.dart';
+
 import 'package:autism_fyp/views/screens/progressheader.dart';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class afterbathscreen extends StatelessWidget {
   const afterbathscreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut<AfterBathController>(() => AfterBathController());
+    final AfterBathController controller = Get.put(AfterBathController());
+    final AvatarController avatarController = Get.put(AvatarController());
 
-    final AfterBathController controller = Get.find<AfterBathController>();
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: screenHeight * 0.04),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: StepProgressHeader(
-                  currentStep: 5, 
+                  currentStep:5,
                   onBack: () => Navigator.pop(context),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.15),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  "After Bath Routine",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        /// Avatar
+                        Obx(() {
+                          final avatarPath = avatarController.avatarPath.value;
+                          if (avatarPath.isEmpty) {
+                            return const SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return Image.asset(
+                            avatarPath,
+                            height: screenHeight * 0.10,
+                            width: screenWidth * 0.20,
+                            fit: BoxFit.contain,
+                          );
+                        }),
+
+                        const SizedBox(width: 16),
+
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(2, 4),
+                                ),
+                              ],
+                            ),
+                            child: Obx(
+                              () => Text(
+                                controller.instructionText.value, 
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.01),
-            
-              AfterBathQuiz(), 
-              
-              SizedBox(height: screenHeight * 0.01),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5.0),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: SizedBox(
-                    width: screenWidth * 0.8,
-                    height: screenHeight * 0.08,
-                    child:  CustomElevatedButton(
-                      text: "Continue",
-                      onPressed: () {
-                        controller.checkAnswerAndNavigate();
-                      },
-                    )),
+
+              const SizedBox(height: 30),
+
+              /// Quiz Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Drag and Drop the After Bath Routine into correct sequence.",
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w500,
                   ),
-                
+                ),
               ),
 
-              // Try Again Button (commented out as per your pattern)
-              // Obx(() => controller.showCompletion.value
-              //     ? ElevatedButton(
-              //         onPressed: controller.resetQuiz,
-              //         style: ElevatedButton.styleFrom(
-              //           backgroundColor: Colors.orange,
-              //           padding: EdgeInsets.symmetric(
-              //             horizontal: screenWidth * 0.06,
-              //             vertical: screenHeight * 0.02,
-              //           ),
-              //         ),
-              //         child: Text(
-              //           "Try Again",
-              //           style: TextStyle(
-              //             fontSize: screenWidth * 0.04,
-              //             color: Colors.white,
-              //           ),
-              //         ),
-              //       )
-              //     : const SizedBox.shrink()),
+              SizedBox(height: screenHeight * 0.01),
+
+               Center(child: AfterBathQuiz()),
             ],
           ),
         ),

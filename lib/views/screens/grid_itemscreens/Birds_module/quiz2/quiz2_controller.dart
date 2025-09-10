@@ -1,8 +1,11 @@
 import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/birds_module_controller.dart';
 
 class BirdHabitatController extends GetxController {
   final audioService = AudioInstructionService.to;
+  final birdsModuleController = Get.find<BirdsModuleController>();
+  
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
@@ -11,6 +14,12 @@ class BirdHabitatController extends GetxController {
   var showFeedback = false.obs;
   var isCorrect = false.obs;
   var draggedBird = RxString('');
+
+  // Progress tracking
+  var retries = 0.obs;
+  var wrongAttempts = 0.obs;
+  var hasSubmitted = false.obs;
+  var showCompletion = false.obs;
 
   final List<Map<String, dynamic>> questions = [
     {
@@ -100,9 +109,12 @@ class BirdHabitatController extends GetxController {
     cityBirds.clear();
     showFeedback.value = false;
     draggedBird.value = '';
+    isCorrect.value = false;
   }
 
   void addBirdToHabitat(String birdId, String habitatType) {
+    if (hasSubmitted.value) return;
+    
     final birds = currentQuestion["birds"] as List<Map<String, dynamic>>;
     final bird = birds.firstWhere((b) => b["id"] == birdId);
     
@@ -124,6 +136,8 @@ class BirdHabitatController extends GetxController {
   }
 
   void checkAnswer() {
+    if (hasSubmitted.value) return;
+    
     final currentQuestion = this.currentQuestion;
     bool allCorrect = true;
 
@@ -148,35 +162,77 @@ class BirdHabitatController extends GetxController {
     if (isCorrect.value) {
       score.value++;
       audioService.playCorrectFeedback();
+      completeQuiz();
     } else {
+      wrongAttempts.value++;
       audioService.playIncorrectFeedback();
+      
+      // Record wrong attempt
+      birdsModuleController.recordWrongAnswer(
+        quizId: "quiz2",
+        questionId: "Bird Habitat Matching",
+        wrongAnswer: "Incorrect habitat placements",
+        correctAnswer: "Forest: owl, woodpecker | Water: duck, swan | City: pigeon, sparrow",
+      );
     }
+  }
+
+  void completeQuiz() {
+    showCompletion.value = true;
+    hasSubmitted.value = true;
+    
+    audioService.playCorrectFeedback();
+    audioService.setInstructionAndSpeak(
+      "Amazing! You helped all birds find their homes!",
+      "goingbed_audios/habitat_complete.mp3",
+    );
+    
+    // Record quiz result
+    birdsModuleController.recordQuizResult(
+      quizId: "quiz2",
+      score: score.value,
+      retries: retries.value,
+      isCompleted: true,
+      wrongAnswersCount: wrongAttempts.value,
+    );
+    
+    // Sync progress
+    birdsModuleController.syncModuleProgress();
   }
 
   void resetQuestion() {
     loadQuestion();
+    retries.value++;
   }
 
-  // void nextQuestion() {
-  //   if (currentQuestionIndex.value < questions.length - 1) {
-  //     currentQuestionIndex.value++;
-  //     loadQuestion();
-  //   } else {
-  //     showFeedback.value = false;
-  //     audioService.setInstructionAndSpeak(
-  //       "Amazing! You helped all birds find their homes!",
-  //       "goingbed_audios/habitat_complete.mp3",
-  //     );
-  //   }
-  // }
-   void checkAnswerAndNavigate() {
-     
+  void checkAnswerAndNavigate() {
+    if (hasSubmitted.value && showCompletion.value) {
       // Navigate to the next screen
-      // Get.to(() => const BirdHabitatscreen());
-      
+      // Get.to(() => const NextScreen());
+    } else {
+      checkAnswer();
+    }
+  }
 
-    
-}
+  // Progress tracking methods
+  double getProgressPercentage() {
+    final totalBirds = currentQuestion["birds"].length;
+    final placedBirds = forestBirds.length + waterBirds.length + cityBirds.length;
+    return placedBirds / totalBirds;
+  }
+
+  int getRemainingBirds() {
+    final totalBirds = currentQuestion["birds"].length;
+    final placedBirds = forestBirds.length + waterBirds.length + cityBirds.length;
+    return totalBirds - placedBirds;
+  }
+
+  String getProgressText() {
+    final totalBirds = currentQuestion["birds"].length;
+    final placedBirds = forestBirds.length + waterBirds.length + cityBirds.length;
+    return "$placedBirds/$totalBirds birds placed";
+  }
+
   Map<String, dynamic> get currentQuestion {
     if (currentQuestionIndex.value >= questions.length) {
       currentQuestionIndex.value = 0; // fallback safety
@@ -186,5 +242,11 @@ class BirdHabitatController extends GetxController {
         .map((b) => Map<String, dynamic>.from(b))
         .toList();
     return question;
+  }
+
+  @override
+  void onClose() {
+    audioService.stopSpeaking();
+    super.onClose();
   }
 }
