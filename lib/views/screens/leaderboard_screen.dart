@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({Key? key}) : super(key: key);
@@ -13,10 +12,81 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  final String? currentUid = FirebaseAuth.instance.currentUser?.uid; // 👈 current user
+  final String? currentUid = FirebaseAuth.instance.currentUser?.uid;
+  List<Map<String, dynamic>> _leaderboardData = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboardData();
+  }
+
+  Future<void> _fetchLeaderboardData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Fetch all users
+      final usersSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .get();
+
+      // Create a list to store users with their scores
+      List<Map<String, dynamic>> usersWithScores = [];
+
+      // Fetch score for each user
+      for (var userDoc in usersSnapshot.docs) {
+        final userData = userDoc.data();
+        
+        try {
+          // Try to get score from progress/overview
+          final overviewDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userDoc.id)
+              .collection('progress')
+              .doc('overview')
+              .get();
+
+          final score = overviewDoc.exists ? (overviewDoc.data()?['totalScore'] ?? 0) : 0;
+          
+          usersWithScores.add({
+            'id': userDoc.id,
+            'username': userData['username'] ?? 'Unknown',
+            'avatar': userData['avatar'] ?? '',
+            'score': score,
+          });
+        } catch (e) {
+
+          usersWithScores.add({
+            'id': userDoc.id,
+            'username': userData['username'] ?? 'Unknown',
+            'avatar': userData['avatar'] ?? '',
+            'score': 0,
+          });
+        }
+      }
+
+
+      usersWithScores.sort((a, b) => b['score'].compareTo(a['score']));
+
+      setState(() {
+        _leaderboardData = usersWithScores;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error loading leaderboard: ${e.toString()}';
+      });
+    }
+  }
 
   Widget buildLeaderboardItem(
-    Map<String, dynamic>? user,
+    Map<String, dynamic> user,
     int rank,
     Color color,
     double height,
@@ -27,13 +97,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         CircleAvatar(
           radius: 24,
           backgroundColor: Colors.white,
-          backgroundImage: (user?['avatar'] != null && user!['avatar'].isNotEmpty)
+          backgroundImage: (user['avatar'] != null && user['avatar'].isNotEmpty)
               ? AssetImage(user['avatar']) as ImageProvider
               : null,
-          child: (user?['avatar'] == null || user!['avatar'].isEmpty)
+          child: (user['avatar'] == null || user['avatar'].isEmpty)
               ? const Icon(Icons.person, size: 28, color: Colors.grey)
               : null,
         ),
+        const SizedBox(height: 5),
         Container(
           height: height,
           width: 80,
@@ -41,7 +112,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             color: color,
             borderRadius: BorderRadius.circular(20),
             border: isCurrentUser
-                ? Border.all(color:Color(0xFF0E83AD), width: 2) 
+                ? Border.all(color: const Color(0xFF0E83AD), width: 2) 
                 : null,
           ),
           alignment: Alignment.center,
@@ -54,7 +125,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
+        Text(
+          '${user['score']} pts',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isCurrentUser ? const Color(0xFF0E83AD) : Colors.white,
+          ),
+        ),
       ],
     );
   }
@@ -68,7 +147,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 🔹 Background image
+          // Background image
           Container(
             height: screenH * 0.6,
             width: double.infinity,
@@ -80,14 +159,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
 
-          // 🔹 Header
+          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 30),
             child: Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                  onPressed: () => Get.to(HomeScreen())
+                  onPressed: () => Get.to(const HomeScreen())
                 ),
                 Text(
                   "Leaderboard",
@@ -97,187 +176,189 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     color: Colors.white,
                   ),
                 ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: _fetchLeaderboardData,
+                ),
               ],
             ),
           ),
 
-          // 🔹 Scrollable Leaderboard Content
-          SingleChildScrollView(
+          // Content
+          Padding(
             padding: EdgeInsets.only(top: screenH * 0.20),
-            child: Column(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : _leaderboardData.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "No leaderboard data available",
+                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          )
+                        : _buildLeaderboardContent(screenH),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLeaderboardContent(double screenH) {
+    final topThree = _leaderboardData.take(3).toList();
+    final remaining = _leaderboardData.skip(3).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Podium Section
+          SizedBox(
+            height: screenH * 0.32,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                // 🔹 Podium Section
-                SizedBox(
-                  height: screenH * 0.30,
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('users').snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Center(child: Text("No users found"));
-                      }
-
-                      final docs = snapshot.data!.docs.toList()..shuffle();
-                      final topThree = docs.take(3).toList();
-
-                      return Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (topThree.length > 1)
-                            Positioned(
-                              left: 40,
-                              bottom: 0,
-                              child: buildLeaderboardItem(
-                                topThree[1].data() as Map<String, dynamic>?,
-                                2,
-                                Color(0xFF205295),
-                                140,
-                                topThree[1].id == currentUid, 
-                              ),
-                            ),
-                          if (topThree.isNotEmpty)
-                            Positioned(
-                              bottom: 0,
-                              child: buildLeaderboardItem(
-                                topThree[0].data() as Map<String, dynamic>?,
-                                1,
-                                Color(0xFFA27B5C),
-                                160,
-                                topThree[0].id == currentUid, 
-                              ),
-                            ),
-                          if (topThree.length > 2)
-                            Positioned(
-                              right: 40,
-                              bottom: 0,
-                              child: buildLeaderboardItem(
-                                topThree[2].data() as Map<String, dynamic>?,
-                                3,
-                                Color(0xFF5C8374),
-                                130,
-                                topThree[2].id == currentUid, // 👈 check
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                // 🔹 Remaining Leaderboard
-                Container(
-                  height: screenH * 0.6,
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                if (topThree.length > 1)
+                  Positioned(
+                    left: 40,
+                    bottom: 0,
+                    child: buildLeaderboardItem(
+                      topThree[1],
+                      2,
+                      const Color(0xFF205295),
+                      140,
+                      topThree[1]['id'] == currentUid, 
                     ),
                   ),
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('users').snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Center(child: Text("No users found"));
-                      }
-
-                      final docs = snapshot.data!.docs.toList()..shuffle();
-                      final remaining = docs.skip(3).toList();
-
-                      return ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: remaining.length,
-                        itemBuilder: (context, index) {
-                          final doc = remaining[index];
-                          final data = doc.data() as Map<String, dynamic>?;
-                          final username = (data?['username'] ?? 'Unknown').toString();
-                          final avatarPath = (data?['avatar'])?.toString();
-                          final isCurrentUser = doc.id == currentUid; 
-
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 5),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(16),
-                              border: isCurrentUser
-                                  ? Border.all(color:  Color(0xFF0E83AD), width: 2)
-                                  : null,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  "${(index + 4).toString().padLeft(2, '0')}",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(width: 15),
-                                CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: Colors.white,
-                                  child: (avatarPath != null && avatarPath.isNotEmpty)
-                                      ? ClipOval(
-                                          child: Image.asset(
-                                            avatarPath,
-                                            width: 40,
-                                            height: 40,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stack) =>
-                                                const Icon(Icons.person, size: 28, color: Colors.grey),
-                                          ),
-                                        )
-                                      : const Icon(Icons.person, size: 28, color: Colors.grey),
-                                ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        username,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: isCurrentUser ? Colors.blue : Colors.black, // 👈 highlight name too
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text(
-                                        "Score: coming soon",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
+                if (topThree.isNotEmpty)
+                  Positioned(
+                    bottom: 0,
+                    child: buildLeaderboardItem(
+                      topThree[0],
+                      1,
+                      const Color(0xFFA27B5C),
+                      160,
+                      topThree[0]['id'] == currentUid, 
+                    ),
                   ),
-                ),
+                if (topThree.length > 2)
+                  Positioned(
+                    right: 40,
+                    bottom: 0,
+                    child: buildLeaderboardItem(
+                      topThree[2],
+                      3,
+                      const Color(0xFF5C8374),
+                      130,
+                      topThree[2]['id'] == currentUid,
+                    ),
+                  ),
               ],
+            ),
+          ),
+
+          // Remaining Leaderboard
+          Container(
+            height: screenH * 0.6,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: remaining.length,
+              itemBuilder: (context, index) {
+                final user = remaining[index];
+                final username = user['username'];
+                final avatarPath = user['avatar'];
+                final score = user['score'];
+                final isCurrentUser = user['id'] == currentUid;
+                final rank = index + 4;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                    border: isCurrentUser
+                        ? Border.all(color: const Color(0xFF0E83AD), width: 2)
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        rank.toString().padLeft(2, '0'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white,
+                        child: (avatarPath != null && avatarPath.isNotEmpty)
+                            ? ClipOval(
+                                child: Image.asset(
+                                  avatarPath,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stack) =>
+                                      const Icon(Icons.person, size: 28, color: Colors.grey),
+                                ),
+                              )
+                            : const Icon(Icons.person, size: 28, color: Colors.grey),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              username,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isCurrentUser ? const Color(0xFF0E83AD) : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Score: ${score > 0 ? '$score pts' : 'No score yet'}",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isCurrentUser ? const Color(0xFF0E83AD) : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],

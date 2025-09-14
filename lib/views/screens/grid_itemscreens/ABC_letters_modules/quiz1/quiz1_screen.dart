@@ -1,15 +1,8 @@
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/abc_quiz_progressheader.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_widget.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quizprogressheader.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/progrressheader_bathing.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_widget.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/homeprogressbar.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_controller.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_widget.dart';
-import 'package:autism_fyp/views/screens/progressheader.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -120,7 +113,7 @@ class Quiz1Screen extends StatelessWidget {
 
               SizedBox(height: screenHeight * 0.01),
 
-               Center(child: AlphabetQuiz()),
+               Center(child: SpeechLetterQuiz()),
             ],
           ),
         ),

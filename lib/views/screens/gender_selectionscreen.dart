@@ -173,7 +173,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                       controller: _usernameController,
                       style: TextStyle(fontSize: screenWidth * 0.041),
                       decoration: inputDecoration.copyWith(
-                        hintText: "Nickname",
+                        hintText: "Please enter nickname for your child?",
                       ),
                     ),
                   ),
@@ -184,7 +184,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                       controller: authController.ageController,
                       style: TextStyle(fontSize: screenWidth * 0.041),
                       decoration: inputDecoration.copyWith(
-                        hintText: "Your age",
+                        hintText: "Age of your child?",
                       ),
                       keyboardType: TextInputType.number,
                     ),

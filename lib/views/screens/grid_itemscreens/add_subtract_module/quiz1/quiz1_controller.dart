@@ -25,7 +25,6 @@ class FruitMathController extends GetxController {
     {
       "type": "addition",
       "instruction": "Collect the required fruits for your fruit salad!",
-      "audio": "fruitmath_question1",
       "target": [
         {"type": "apple", "count": 2},
         {"type": "banana", "count": 1},
@@ -43,7 +42,6 @@ class FruitMathController extends GetxController {
     {
       "type": "subtraction", 
       "instruction": "Remove these fruits from the basket!",
-      "audio": "fruitmath_question2",
       "initialBasket": [
         {"type": "apple", "count": 4},
         {"type": "banana", "count": 2},
@@ -67,12 +65,9 @@ class FruitMathController extends GetxController {
   void onInit() {
     super.onInit();
     audioService.setInstructionAndSpeak(
-      "Hey kiddo welcome to this quiz. In this quiz we will learn to make salad by adding and subtracting fruits.",
-      "goingbed_audios/fruitmath_intro.mp3",
+      "Hey kiddo! Welcome to Fruit Math. Here, we will learn how to make a fruit salad by adding and removing fruits."
     ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadCurrentQuestion();
-      });
+      Future.delayed(const Duration(seconds: 2), loadCurrentQuestion);
     });
   }
 
@@ -80,10 +75,10 @@ class FruitMathController extends GetxController {
     basketItems.clear();
     showFeedback.value = false;
     isCorrect.value = false;
+
     final currentQuestion = questions[currentQuestionIndex.value];
-    
     availableFruits.assignAll(List.from(currentQuestion["availableFruits"]));
-    
+
     if (currentQuestion["type"] == "subtraction") {
       final initialBasket = List<Map<String, dynamic>>.from(currentQuestion["initialBasket"]);
       for (var fruit in initialBasket) {
@@ -96,35 +91,31 @@ class FruitMathController extends GetxController {
         }
       }
     }
-    
-    Future.delayed(const Duration(milliseconds: 500), () {
-      playQuestionAudio();
-    });
+
+    Future.delayed(const Duration(milliseconds: 500), playQuestionAudio);
   }
 
   void playQuestionAudio() {
-    final currentAudio = questions[currentQuestionIndex.value]["audio"];
-    audioService.playAudioFromPath(currentAudio);
+    final instruction = questions[currentQuestionIndex.value]["instruction"];
+    audioService.isSpeaking(instruction);
   }
 
   void addToBasket(Map<String, dynamic> fruit) {
-    if (hasSubmitted.value) return;
-    basketItems.add(fruit);
+    if (!hasSubmitted.value) basketItems.add(fruit);
   }
 
   void removeFromBasket(Map<String, dynamic> fruit) {
-    if (hasSubmitted.value) return;
-    basketItems.remove(fruit);
+    if (!hasSubmitted.value) basketItems.remove(fruit);
   }
 
   void checkAnswer() {
     if (hasSubmitted.value) return;
-    
+
     final currentQuestion = questions[currentQuestionIndex.value];
     final target = List<Map<String, dynamic>>.from(currentQuestion["target"]);
-    
+
     bool correct = true;
-    
+
     for (var targetFruit in target) {
       final countInBasket = basketItems.where((item) => item["type"] == targetFruit["type"]).length;
       if (countInBasket != targetFruit["count"]) {
@@ -132,29 +123,24 @@ class FruitMathController extends GetxController {
         break;
       }
     }
-    
+
     if (currentQuestion["type"] == "addition") {
       final allTypes = target.map((t) => t["type"]).toList();
-      final hasExtraFruits = basketItems.any((item) => !allTypes.contains(item["type"]));
-      if (hasExtraFruits) correct = false;
+      if (basketItems.any((item) => !allTypes.contains(item["type"]))) correct = false;
     }
-    
+
     isCorrect.value = correct;
     showFeedback.value = true;
 
     if (correct) {
       score.value++;
       audioService.playCorrectFeedback();
-      
-      // Record successful question completion
-      if (isLastQuestion) {
-        completeQuiz();
-      }
+
+      if (isLastQuestion) completeQuiz();
     } else {
       wrongAttempts.value++;
       audioService.playIncorrectFeedback();
-      
-      // Record wrong attempt
+
       addSubtractModuleController.recordWrongAnswer(
         quizId: "quiz1",
         questionId: "Question ${currentQuestionIndex.value + 1}",
@@ -176,14 +162,12 @@ class FruitMathController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
+
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
-      "Amazing! You completed the Fruit Math challenge!",
-      "goingbed_audios/fruitmath_complete.mp3",
+      "Amazing! You completed the Fruit Math challenge! Well done!"
     );
-    
-    // Record quiz result
+
     addSubtractModuleController.recordQuizResult(
       quizId: "quiz1",
       score: score.value,
@@ -191,8 +175,7 @@ class FruitMathController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
-    // Sync progress
+
     addSubtractModuleController.syncModuleProgress();
   }
 
@@ -206,38 +189,28 @@ class FruitMathController extends GetxController {
     wrongAttempts.value = 0;
     hasSubmitted.value = false;
     showCompletion.value = false;
-    
-    audioService.setInstructionAndSpeak(
-      "Let's try the fruit math again!",
-      "goingbed_audios/fruitmath_reset.mp3",
-    ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadCurrentQuestion();
-      });
+
+    audioService.setInstructionAndSpeak("Let's try the fruit math again!").then((_) {
+      Future.delayed(const Duration(seconds: 2), loadCurrentQuestion);
     });
   }
 
   void checkAnswerAndNavigate() {
     if (hasSubmitted.value && showCompletion.value) {
-      // Navigate to the next screen
       Get.to(() => const NumberLinescreen());
     } else {
       checkAnswer();
     }
   }
 
-  // Progress tracking methods
-  double getProgressPercentage() {
-    return (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
-  }
+  double getProgressPercentage() =>
+      (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
 
-  int getRemainingQuestions() {
-    return questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
-  }
+  int getRemainingQuestions() =>
+      questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
 
-  String getCurrentQuestionProgress() {
-    return "Question ${currentQuestionIndex.value + 1}/${questions.length}";
-  }
+  String getCurrentQuestionProgress() =>
+      "Question ${currentQuestionIndex.value + 1}/${questions.length}";
 
   Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
   bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;

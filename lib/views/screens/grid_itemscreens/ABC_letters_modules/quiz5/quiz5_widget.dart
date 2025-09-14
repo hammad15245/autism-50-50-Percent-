@@ -19,48 +19,43 @@ class SoundRecognitionQuiz extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Question Row (single Obx for both text + icon)
-          Obx(() => Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+          // ✅ Dynamic Instruction Text (AI-synced)
+          Obx(() => Column(
                 children: [
-                  Flexible(
-                    child: Text(
-                      "What starts with '${controller.currentSound.value}' sound?",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF0E83AD),
-                      ),
-                      textAlign: TextAlign.center,
+                  Text(
+                    controller.instructionText.value.isEmpty
+                        ? "Listen and choose the correct picture!"
+                        : controller.instructionText.value,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0E83AD),
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 10),
-                  controller.isPlayingSound.value
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
-                          ),
+                  const SizedBox(height: 8),
+                  controller.isSpeaking.value
+                      ? const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
                         )
                       : IconButton(
                           icon: const Icon(Icons.volume_up, size: 28),
-                          onPressed: controller.playSound,
+                          onPressed: (){}, 
                         ),
                 ],
               )),
+
           SizedBox(height: screenHeight * 0.02),
 
-          // Progress bar
           Obx(() => LinearProgressIndicator(
                 value: (controller.currentIndex.value + 1) / controller.soundObjects.length,
                 backgroundColor: Colors.grey[300],
                 valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
               )),
           SizedBox(height: screenHeight * 0.01),
-          
-          // Progress text
+
+          // ✅ Progress text
           Obx(() => Text(
                 "Question ${controller.currentIndex.value + 1}/${controller.soundObjects.length}",
                 style: TextStyle(
@@ -71,6 +66,7 @@ class SoundRecognitionQuiz extends StatelessWidget {
               )),
           SizedBox(height: screenHeight * 0.03),
 
+          // ✅ Options Grid
           Obx(() {
             final currentData = controller.soundObjects[controller.currentIndex.value];
             final options = _generateOptions(currentData["image"]!);
@@ -92,10 +88,11 @@ class SoundRecognitionQuiz extends StatelessWidget {
             );
           }),
 
-          // Feedback section
           SizedBox(height: screenHeight * 0.03),
-          Obx(() => controller.showCompletion.value 
-              ? _buildCompletionFeedback(context) 
+
+          // ✅ Completion Feedback
+          Obx(() => controller.showCompletion.value
+              ? _buildCompletionFeedback(context)
               : const SizedBox.shrink()),
         ],
       ),
@@ -105,11 +102,11 @@ class SoundRecognitionQuiz extends StatelessWidget {
   Widget _buildCompletionFeedback(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     final correctCount = controller.correctlyAnsweredQuestions.value;
     final totalQuestions = controller.soundObjects.length;
     final isPerfect = correctCount == totalQuestions;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -128,9 +125,7 @@ class SoundRecognitionQuiz extends StatelessWidget {
             color: isPerfect ? Colors.green : Colors.blue,
             size: screenWidth * 0.1,
           ),
-          
           SizedBox(height: screenHeight * 0.01),
-          
           Text(
             isPerfect ? "Quiz Completed! 🎉" : "Great Effort!",
             style: TextStyle(
@@ -140,12 +135,10 @@ class SoundRecognitionQuiz extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
           SizedBox(height: screenHeight * 0.01),
-          
           Text(
-            isPerfect 
-                ? "Perfect score! You got all $totalQuestions questions right!" 
+            isPerfect
+                ? "Perfect score! You got all $totalQuestions right!"
                 : "You got $correctCount out of $totalQuestions correct!",
             style: TextStyle(
               fontSize: screenWidth * 0.04,
@@ -153,18 +146,12 @@ class SoundRecognitionQuiz extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
           SizedBox(height: screenHeight * 0.02),
-          
-          // Action Buttons in a row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Continue Button
               ElevatedButton(
-                onPressed: () {
-                  Get.to(() => const Quiz4matchingscreen());
-                },
+                onPressed: () => Get.to(() => const Quiz4matchingscreen()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
@@ -184,10 +171,8 @@ class SoundRecognitionQuiz extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              // Try Again Button
               ElevatedButton(
-                onPressed: controller.resetQuiz,
+                onPressed: (){},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -209,13 +194,10 @@ class SoundRecognitionQuiz extends StatelessWidget {
               ),
             ],
           ),
-          
           SizedBox(height: screenHeight * 0.01),
-          
-          // Encouragement Message
           Text(
-            isPerfect 
-                ? "You're a sound recognition expert! ✨" 
+            isPerfect
+                ? "You're a sound recognition expert! ✨"
                 : "Practice makes perfect!",
             style: TextStyle(
               fontSize: screenWidth * 0.032,
@@ -247,7 +229,6 @@ class SoundRecognitionQuiz extends StatelessWidget {
         bool showFeedback = controller.showFeedback.value;
 
         Color borderColor = const Color.fromARGB(255, 209, 209, 209);
-        
         if (showFeedback) {
           if (isSelected) {
             borderColor = isCorrect ? Colors.green : Colors.red;
@@ -276,10 +257,7 @@ class SoundRecognitionQuiz extends StatelessWidget {
                 ),
               ],
             ),
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.contain,
-            ),
+            child: Image.asset(imagePath, fit: BoxFit.contain),
           ),
         );
       },

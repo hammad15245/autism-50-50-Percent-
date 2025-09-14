@@ -9,7 +9,7 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/bathing
 import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/counting_module_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/eating_food_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/home_animal_controller.dart';
-import 'package:autism_fyp/views/screens/locignscreen.dart';
+import 'package:autism_fyp/views/widget/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }

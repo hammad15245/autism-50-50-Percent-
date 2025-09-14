@@ -56,7 +56,6 @@ class SequenceController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "kiddos! Let's learn number sequences! Arrange the numbers in the correct order.",
-        "goingbed_audios/sequence_intro.mp3",
       );
     });
     
@@ -84,7 +83,6 @@ class SequenceController extends GetxController {
     if (levelData.containsKey("audio")) {
       audioService.setInstructionAndSpeak(
         instruction,
-        levelData["audio"],
       );
     } else {
       // audioService.speak(instruction);
@@ -125,7 +123,6 @@ class SequenceController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Excellent! You arranged the numbers $correctSequence correctly!",
-        "counting_audios/sequence_correct.mp3",
       );
       
       Get.snackbar(
@@ -154,7 +151,6 @@ class SequenceController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "That's not quite right. Try again to arrange $correctSequence",
-        "counting_audios/sequence_incorrect.mp3",
       );
     }
   }
@@ -178,7 +174,6 @@ class SequenceController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "Congratulations! You completed all sequencing levels with $score out of ${levels.length} correct!",
-        "counting_audios/sequence_all_complete.mp3",
       );
       
       Get.snackbar(
@@ -217,7 +212,6 @@ class SequenceController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try this level again! Remember the correct sequence.",
-      "counting_audios/sequence_retry.mp3",
     );
   }
 

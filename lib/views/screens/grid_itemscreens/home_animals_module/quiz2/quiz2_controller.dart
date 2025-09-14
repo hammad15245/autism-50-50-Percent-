@@ -69,7 +69,6 @@ final homeAnimalsController = Get.find<HomeAnimalsController>();
     super.onInit();
     audioService.setInstructionAndSpeak(
       "Okay kiddos lets start matching the shadows with animals.",
-      "goingbed_audios/shadows_intro.mp3",
     );
   }
 
@@ -134,7 +133,6 @@ final homeAnimalsController = Get.find<HomeAnimalsController>();
     } else {
       audioService.setInstructionAndSpeak(
         "Excellent shadow matching! You're a pattern expert!",
-        "assets/goingbed_audios/shadows_complete.mp3",
       );
     }
   }

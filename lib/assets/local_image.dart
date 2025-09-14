@@ -16,30 +16,16 @@ String getImageForTitle(String title) {
       return 'lib/assets/alarm.png';
       case 'abc letters':
       return 'lib/assets/abcletters.png';
-      case 'big and small alphabets':
-      return 'lib/assets/upperlowerabc.png';
-        case 'sounds of alphabets':
-      return 'lib/assets/soundsabc.png';
-       case 'alphabets writing':
-      return 'lib/assets/abcwriting.png';
-        case 'matching alphabets':
-      return 'lib/assets/matchingabc.png';
+
+        case 'catch the stars game':
+      return 'lib/assets/star_game.png';
+
        case 'birds':
       return 'lib/assets/birdsanimal.png';
          case 'home animals':
       return 'lib/assets/homepets.png';
-         case 'water animals':
-      return 'lib/assets/wateranimals.png';
-           case 'wild animals':
-      return 'lib/assets/wildanimals.png';
-          case 'tiny bugs':
-      return 'lib/assets/tinybug.png';
            case 'count the things':
       return 'lib/assets/countthings.png'; 
-        case 'match the numbers':
-      return 'lib/assets/matchnumbers.png';
-        case 'numbers puzzle':
-      return 'lib/assets/numberpuzzle.png'; 
         case 'addition and subtraction':
       return 'lib/assets/plusminus.png';
     default:

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:autism_fyp/views/screens/home_screen.dart';
+import 'package:autism_fyp/views/screens/locignscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? username;
   String? avatarPath;
-  String? uniqueId; // 🔹 cache the unique ID
+  String? uniqueId;
+  String? userEmail;
 
   @override
   void initState() {
@@ -32,7 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           username = doc.data()?['username'] ?? 'No name';
           avatarPath = doc.data()?['avatar'];
-          uniqueId = doc.data()?['uniqueId']; // 🔹 fetch uniqueId if exists
+          uniqueId = doc.data()?['uniqueId'];
+          userEmail = FirebaseAuth.instance.currentUser?.email;
         });
       }
     }
@@ -73,6 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           username = newName;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Username updated successfully")),
+        );
       }
     }
   }
@@ -81,20 +87,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null || username == null) return;
 
-    // 🔹 If ID already exists, don’t generate again
     if (uniqueId == null) {
       final random = Random();
-      final randomDigits = random.nextInt(9000) + 1000; // 1000–9999
+      final randomDigits = random.nextInt(9000) + 1000;
       uniqueId =
           "${username!.substring(0, min(3, username!.length)).toUpperCase()}-$randomDigits";
 
-      // save only once
       await FirebaseFirestore.instance.collection('users').doc(uid).update({
         'uniqueId': uniqueId,
       });
     }
 
-    // show popup
     showDialog(
       context: context,
       builder: (context) {
@@ -126,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0E83AD),
+                    backgroundColor: const Color(0xFF0E83AD),
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () => Navigator.pop(context),
@@ -139,6 +142,132 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+
+  Future<void> _updateEmailPassword() async {
+    final emailController = TextEditingController(text: userEmail);
+    final passwordController = TextEditingController();
+
+    await showDialog(
+      
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text("Update Email & Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "New Password (optional)",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel",),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  // Update email
+                  if (emailController.text.trim() != user.email) {
+                    await user.updateEmail(emailController.text.trim());
+                  }
+                  
+                  // Update password if provided
+                  if (passwordController.text.trim().isNotEmpty) {
+                    await user.updatePassword(passwordController.text.trim());
+                  }
+                  
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Updated successfully")),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Error updating: ${e.toString()}")),
+                );
+              }
+            },
+            child: const Text("Update"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _eraseData() async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text("Erase All Data"),
+        content: const Text("Are you sure you want to delete all your data? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Data erasure functionality would be implemented here")),
+      );
+    }
+  }
+
+  Future<void> _logout() async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await FirebaseAuth.instance.signOut();
+      Get.offAll(() => LoginScreen());
+    }
+  }
+
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                    onPressed: () => Get.to(HomeScreen())),
+              
                 Text(
                   "Profile",
                   style: TextStyle(
@@ -179,7 +306,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          // 🔹 Scrollable Content aligned from the top
           SingleChildScrollView(
             padding: EdgeInsets.only(top: screenHeight * 0.25),
             child: Column(
@@ -214,20 +340,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      const _ActionRow(
-                        icon: Icons.person,
-                        label: "Manage Profile",
-                        color: Colors.blue,
+                  
+                      
+                      GestureDetector(
+                        onTap: _updateEmailPassword,
+                        child: const _ActionRow(
+                          icon: Icons.email,
+                          label: "Update Email & Password",
+                          color: Colors.green,
+                        ),
                       ),
                       const Divider(height: 1, thickness: 0.2, color: Colors.grey),
-                      const _ActionRow(
-                        icon: Icons.email,
-                        label: "Update Email & Password",
-                        color: Colors.green,
-                      ),
-                                            const Divider(height: 1, thickness: 0.2, color: Colors.grey),
+                      
+                      // Erase Data
                       GestureDetector(
-                        onTap: _editUsername,
+                        onTap: _eraseData,
                         child: const _ActionRow(
                           icon: Icons.edit,
                           label: "Erase data",
@@ -236,6 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const Divider(height: 1, thickness: 0.2, color: Colors.grey),
 
+                      // Generate ID
                       GestureDetector(
                         onTap: _generateAndShowId,
                         child: const _ActionRow(
@@ -244,12 +372,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Colors.purple,
                         ),
                       ),
-
                       const Divider(height: 1, thickness: 0.2, color: Colors.grey),
-                      const _ActionRow(
-                        icon: Icons.exit_to_app,
-                        label: "Logout",
-                        color: Colors.red,
+                      
+                      // Logout
+                      GestureDetector(
+                        onTap: _logout,
+                        child: const _ActionRow(
+                          icon: Icons.exit_to_app,
+                          label: "Logout",
+                          color: Colors.red,
+                        ),
                       ),
                     ],
                   ),
@@ -263,7 +395,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// 🔹 Helper row widget with circular icon background
 class _ActionRow extends StatelessWidget {
   final IconData icon;
   final String label;

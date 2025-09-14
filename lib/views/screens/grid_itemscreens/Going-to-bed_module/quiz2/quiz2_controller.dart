@@ -85,7 +85,6 @@ class EmotionChoiceQuizController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Ok now Let's learn about good bedtime habits! Choose the best option for each question.",
-        "goingbed_audios/quiz2.mp3",
       );
     });
 
@@ -97,7 +96,6 @@ class EmotionChoiceQuizController extends GetxController {
   void playQuestionInstruction() {
     final audioPath = questions[currentQuestionIndex.value]["audio"];
     if (audioPath != null && audioPath.isNotEmpty) {
-      audioService.playAudioFromPath(audioPath);
     }
   }
 

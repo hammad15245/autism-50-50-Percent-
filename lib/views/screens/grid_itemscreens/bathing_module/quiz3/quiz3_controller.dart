@@ -6,69 +6,15 @@ import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class CleanDirtyController extends GetxController {
   var items = [
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/soap.png",
-      "name": "Soap",
-      "isClean": true,
-      "isSelected": false,
-      "audio": "bathing_audios/soap_clean.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/towel.png",
-      "name": "Clean Towel",
-      "isClean": true,
-      "isSelected": false,
-      "audio": "bathing_audios/towel_clean.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/shampoo.png",
-      "name": "Shampoo",
-      "isClean": true,
-      "isSelected": false,
-      "audio": "bathing_audios/shampoo_clean.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/mud.png",
-      "name": "Mud",
-      "isClean": false,
-      "isSelected": false,
-      "audio": "bathing_audios/mud_dirty.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/dirty_clothes.png",
-      "name": "Dirty Clothes",
-      "isClean": false,
-      "isSelected": false,
-      "audio": "bathing_audios/dirty_clothes.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/trash.png",
-      "name": "Trash",
-      "isClean": false,
-      "isSelected": false,
-      "audio": "bathing_audios/trash_dirty.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/clean_clothes.png",
-      "name": "Clean Clothes",
-      "isClean": true,
-      "isSelected": false,
-      "audio": "bathing_audios/clean_clothes.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/toothbrush.png",
-      "name": "Toothbrush",
-      "isClean": true,
-      "isSelected": false,
-      "audio": "bathing_audios/toothbrush_clean.mp3"
-    },
-    {
-      "image": "lib/assets/quiz3_cleanvsdirty/dirty_hands.png",
-      "name": "Dirty Hands",
-      "isClean": false,
-      "isSelected": false,
-      "audio": "bathing_audios/dirty_hands.mp3"
-    },
+    {"image": "lib/assets/quiz3_cleanvsdirty/soap.png", "name": "Soap", "isClean": true, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/towel.png", "name": "Clean Towel", "isClean": true, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/shampoo.png", "name": "Shampoo", "isClean": true, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/mud.png", "name": "Mud", "isClean": false, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/dirty_clothes.png", "name": "Dirty Clothes", "isClean": false, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/trash.png", "name": "Trash", "isClean": false, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/clean_clothes.png", "name": "Clean Clothes", "isClean": true, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/toothbrush.png", "name": "Toothbrush", "isClean": true, "isSelected": false},
+    {"image": "lib/assets/quiz3_cleanvsdirty/dirty_hands.png", "name": "Dirty Hands", "isClean": false, "isSelected": false},
   ].obs;
 
   var collectedCleanItems = 0.obs;
@@ -88,14 +34,11 @@ class CleanDirtyController extends GetxController {
   void onInit() {
     super.onInit();
     totalCleanItems.value = items.where((item) => item["isClean"] == true).length;
-    
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
-        "Ok kiddos Find and select all the clean items! Tap on clean things you would use for bathing.",
-        "goingbed_audios/clean_dirty_intro.mp3",
+        "Ok kiddos! Find and select all the clean items! Tap on clean things you would use for bathing."
       );
     });
-    
     shuffleItems();
   }
 
@@ -107,29 +50,18 @@ class CleanDirtyController extends GetxController {
     collectedCleanItems.value = 0;
     showCompletion.value = false;
     hasSubmitted.value = false;
-    
-    // audioService.playSoundEffect("bathing_audios/shuffle.mp3");
+    audioService.setInstructionAndSpeak("Let's shuffle the items!");
   }
 
   void toggleItemSelection(int index) {
-    if (showCompletion.value || hasSubmitted.value) return; 
-    
+    if (showCompletion.value || hasSubmitted.value) return;
+
     bool wasSelected = items[index]["isSelected"] == true;
     items[index]["isSelected"] = !wasSelected;
-    
-    // Play selection sound
-    // audioService.playSoundEffect("bathing_audios/selection.mp3");
-    
-    // Speak item name
+
     final itemName = items[index]["name"] as String;
-    final itemAudio = items[index]["audio"] as String?;
-    
-    // if (itemAudio != null) {
-    //   audioService.playSoundEffect(itemAudio);
-    // } else {
-    //   audioService.speak(itemName);
-    // }
-    
+    audioService.speakText(itemName);
+
     if (items[index]["isClean"] == true) {
       if (!wasSelected) {
         collectedCleanItems.value++;
@@ -141,8 +73,7 @@ class CleanDirtyController extends GetxController {
       if (!wasSelected) {
         wrongSelections.value++;
         audioService.playIncorrectFeedback();
-        
-        // Record wrong selection
+
         bathingModuleController.recordWrongAnswer(
           quizId: "quiz3",
           questionId: "Clean vs Dirty items",
@@ -153,9 +84,9 @@ class CleanDirtyController extends GetxController {
         wrongSelections.value--;
       }
     }
-    
-    items.refresh(); 
-    
+
+    items.refresh();
+
     if (collectedCleanItems.value >= totalCleanItems.value) {
       completeQuiz();
     }
@@ -164,14 +95,9 @@ class CleanDirtyController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
     audioService.playCorrectFeedback();
-    audioService.setInstructionAndSpeak(
-      "Great job! You found all the clean items!",
-      "bathing_audios/all_clean_found.mp3",
-    );
-    
-    // Record quiz result
+    audioService.setInstructionAndSpeak("Great job! You found all the clean items!");
+
     bathingModuleController.recordQuizResult(
       quizId: "quiz3",
       score: collectedCleanItems.value,
@@ -179,9 +105,9 @@ class CleanDirtyController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongSelections.value,
     );
-    
+
     bathingModuleController.syncModuleProgress();
-    
+
     Get.snackbar(
       "Great job! 🎉",
       "You found all the clean items!",
@@ -193,16 +119,12 @@ class CleanDirtyController extends GetxController {
 
   void checkAnswerAndNavigate() {
     if (collectedCleanItems.value >= totalCleanItems.value) {
-      Get.to(() => const sensoryscreen()); 
+      Get.to(() => const sensoryscreen());
     } else {
       int remaining = totalCleanItems.value - collectedCleanItems.value;
-      
       audioService.playIncorrectFeedback();
-      audioService.setInstructionAndSpeak(
-        "Find $remaining more clean items to continue.",
-        "bathing_audios/more_clean_needed.mp3",
-      );
-      
+      audioService.setInstructionAndSpeak("Find $remaining more clean items to continue.");
+
       Get.snackbar(
         "Keep looking!",
         "Find $remaining more clean items",
@@ -217,37 +139,16 @@ class CleanDirtyController extends GetxController {
     retries.value++;
     shuffleItems();
     wrongSelections.value = 0;
-    
-    audioService.setInstructionAndSpeak(
-      "Let's try finding clean items again!",
-      "bathing_audios/clean_dirty_retry.mp3",
-    );
+    audioService.setInstructionAndSpeak("Let's try finding clean items again!");
   }
 
-  // Get progress percentage
-  double getProgressPercentage() {
-    return collectedCleanItems.value / totalCleanItems.value;
-  }
+  double getProgressPercentage() => collectedCleanItems.value / totalCleanItems.value;
+  int getRemainingCleanItems() => totalCleanItems.value - collectedCleanItems.value;
+  bool isItemSelected(int index) => items[index]["isSelected"] == true;
 
-  // Get remaining clean items count
-  int getRemainingCleanItems() {
-    return totalCleanItems.value - collectedCleanItems.value;
-  }
-
-  // Check if an item is currently selected
-  bool isItemSelected(int index) {
-    return items[index]["isSelected"] == true;
-  }
-
-  // Get feedback for item selection
   Color getItemFeedbackColor(int index) {
     if (!isItemSelected(index)) return Colors.transparent;
-    
-    if (items[index]["isClean"] == true) {
-      return Colors.green.shade100;
-    } else {
-      return Colors.red.shade100;
-    }
+    return items[index]["isClean"] == true ? Colors.green.shade100 : Colors.red.shade100;
   }
 
   @override

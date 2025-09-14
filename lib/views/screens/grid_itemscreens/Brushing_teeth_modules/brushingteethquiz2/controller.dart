@@ -33,7 +33,6 @@ class BrushingTeethQuiz2Controller extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Great! Now look at this picture. What is the boy doing?",
-        "goingbed_audios/brushing_teethquiz2_intro.mp3",
       );
     });
   }
@@ -59,7 +58,6 @@ class BrushingTeethQuiz2Controller extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Yes! He is brushing his teeth!",
-        "brushing_teeth_audios/quiz2_correct.mp3",
       );
 
       brushingTeethController.recordQuizResult(
@@ -84,7 +82,6 @@ class BrushingTeethQuiz2Controller extends GetxController {
 
       audioService.setInstructionAndSpeak(
         "Oops! He is actually brushing his teeth. Try again!",
-        "brushing_teeth_audios/quiz2_incorrect.mp3",
       );
 
       Future.delayed(const Duration(seconds: 3), () {
@@ -124,7 +121,7 @@ class BrushingTeethQuiz2Controller extends GetxController {
 
     audioService.setInstructionAndSpeak(
       "Let's try again! What is the boy doing?",
-      "brushing_teeth_audios/quiz2_retry.mp3",
+
     );
   }
 

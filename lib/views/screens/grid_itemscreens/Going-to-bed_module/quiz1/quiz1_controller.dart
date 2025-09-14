@@ -44,7 +44,6 @@ class BedtimeController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Hey kiddo! Welcome to this module, let's start quiz 1.",
-        "goingbed_audios/quiz1.mp3",
       );
     });
   }
@@ -92,7 +91,6 @@ class BedtimeController extends GetxController {
     } else {
       audioService.setInstructionAndSpeak(
         "Hmm, that order is not quite right. Try again!",
-        "goingbed_audios/try_again.mp3",
       );
     }
   }
@@ -101,7 +99,6 @@ class BedtimeController extends GetxController {
     currentSequence.clear();
     audioService.setInstructionAndSpeak(
       "The quiz has been reset. Try again and arrange your bedtime steps correctly.",
-      "audio/kid_voice_reset.mp3",
     );
   }
 }

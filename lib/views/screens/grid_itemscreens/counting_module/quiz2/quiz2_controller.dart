@@ -78,7 +78,6 @@ class NumberMatchController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Ok Kiddos lets Match the number with the correct group of items! Listen to the number and find the matching group.",
-        "goingbed_audios/number_match_intro.mp3",
       );
     });
     
@@ -103,7 +102,6 @@ class NumberMatchController extends GetxController {
       if (currentQuestionData.containsKey("audio")) {
         audioService.setInstructionAndSpeak(
           "Find $currentNumber",
-          currentQuestionData["audio"],
         );
       } else {
         // audioService.speak("Find $currentNumber");
@@ -121,7 +119,6 @@ class NumberMatchController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Correct! You matched number $currentNumber!",
-        "counting_audios/number_correct.mp3",
       );
 
       // Move to next question after delay
@@ -148,7 +145,6 @@ class NumberMatchController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "That group has $selectedCount items. Find the group with $currentNumber items.",
-        "counting_audios/number_incorrect.mp3",
       );
     }
   }
@@ -175,17 +171,15 @@ class NumberMatchController extends GetxController {
     if (earnedScore == total) {
       audioService.setInstructionAndSpeak(
         "Perfect! You matched all $total numbers correctly! You're a number matching expert!",
-        "counting_audios/number_perfect.mp3",
+
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $earnedScore out of $total correct. Great number matching!",
-        "counting_audios/number_good.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "Good try! You got $earnedScore out of $total correct. Let's practice more number matching together.",
-        "counting_audios/number_practice.mp3",
       );
     }
   }
@@ -196,7 +190,6 @@ class NumberMatchController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try matching numbers again! Listen carefully to the number.",
-      "counting_audios/number_retry.mp3",
     );
   }
 

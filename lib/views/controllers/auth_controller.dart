@@ -1,3 +1,4 @@
+import 'package:autism_fyp/views/controllers/personalized_learning.dart';
 import 'package:autism_fyp/views/controllers/progress_controller.dart';
 import 'package:autism_fyp/views/screens/gender_selectionscreen.dart';
 import 'package:autism_fyp/views/screens/home_screen.dart';
@@ -37,16 +38,7 @@ class AuthController extends GetxController {
       passwordError.value = 'Password must contain at least one lowercase letter';
       return false;
     }
-    
-    if (!password.contains(RegExp(r'[0-9]'))) {
-      passwordError.value = 'Password must contain at least one number';
-      return false;
-    }
-    
-    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-      passwordError.value = 'Password must contain at least one special character';
-      return false;
-    }
+
     
     if (password.contains(RegExp(r'\s'))) {
       passwordError.value = 'Password cannot contain spaces';
@@ -83,8 +75,19 @@ Future<void> registerUser(String selectedRole) async {
     );
 
     final String uid = userCred.user!.uid;
-    final String collectionName =
-        selectedRole.toLowerCase() == 'parent' ? 'parents' : 'users';
+    
+    // Determine collection based on role
+    String collectionName;
+    switch (selectedRole.toLowerCase()) {
+      case 'parent':
+        collectionName = 'parents';
+        break;
+      case 'teacher':
+        collectionName = 'teachers';
+        break;
+      default:
+        collectionName = 'users';
+    }
 
     // Prepare user data
     final Map<String, dynamic> userData = {
@@ -96,13 +99,16 @@ Future<void> registerUser(String selectedRole) async {
       "role": selectedRole.toLowerCase(),
       "avatar": null,
       "createdAt": FieldValue.serverTimestamp(),
+      "hasCompletedPreferences": false, // Add this field
     };
 
-    // Save user data
+    // Save user data to appropriate collection
     await _firestore.collection(collectionName).doc(uid).set(userData);
-    ProgressController.to.createInitialProgress();
-
+    
+    // Only create progress for child accounts (users)
     if (selectedRole.toLowerCase() == "users") {
+      ProgressController.to.createInitialProgress();
+      
       final progressRef = _firestore
           .collection('users')
           .doc(uid)
@@ -147,6 +153,34 @@ Future<void> registerUser(String selectedRole) async {
     isLoading.value = false;
   }
 }
+
+  // ------------------- CHECK PREFERENCES -------------------
+  Future<bool> _checkUserPreferences(String userId) async {
+    try {
+      // Check if user has completed preferences
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final hasCompletedPrefs = userDoc.data()?['hasCompletedPreferences'] ?? false;
+      
+      // If already completed, no need to show questions
+      if (hasCompletedPrefs) {
+        return true;
+      }
+
+      // Check if preferences document exists
+      final prefsDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('preferences')
+          .doc('learning_profile')
+          .get();
+
+      return prefsDoc.exists;
+    } catch (e) {
+      print('Error checking preferences: $e');
+      return false;
+    }
+  }
+
   // ------------------- LOGIN -------------------
   Future<void> loginUser() async {
     final email = usernamecontroller.text.trim();
@@ -173,19 +207,19 @@ Future<void> registerUser(String selectedRole) async {
         return;
       }
 
-      // Check both collections
+      // Check all three collections: users, parents, and teachers
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final parentDoc = await _firestore.collection('parents').doc(userId).get();
+      final teacherDoc = await _firestore.collection('teachers').doc(userId).get();
 
-      if (parentDoc.exists) {
-        // PARENT DETECTED - BLOCK ACCESS
-        await _auth.signOut(); // Sign them out immediately
+      if (parentDoc.exists || teacherDoc.exists) {
+        await _auth.signOut();
         Get.snackbar(
-          "👨‍👩‍👧‍👦 Parent Account",
-          "Parent dashboard is available on our website. Please visit website for parent features.",
+          "👨‍👩‍👧‍👦 Web Account Detected",
+          "Parent/Teacher dashboard is available on our website. Please visit website for admin features.",
           backgroundColor: Colors.red,
           colorText: Colors.white,
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         );
         return;
       }
@@ -195,13 +229,24 @@ Future<void> registerUser(String selectedRole) async {
         final hasGender = userData.containsKey('gender') && userData['gender'] != null;
         final hasAvatar = userData.containsKey('avatar') && userData['avatar'] != null;
 
-        if (hasGender && hasAvatar) {
-          Get.offAll(() => const HomeScreen());
-        } else {
+        // First check gender and avatar
+        if (!hasGender || !hasAvatar) {
           Get.offAll(() => const GenderSelectionScreen());
+          return;
+        }
+
+        // Then check preferences
+        final hasPreferences = await _checkUserPreferences(userId);
+        
+        if (!hasPreferences) {
+          // Show personalization questions
+          Get.offAll(() => PersonalizationQuestionsScreen(isFirstTime: true));
+        } else {
+          // Go directly to home screen
+          Get.offAll(() => const HomeScreen());
         }
       } else {
-        // User doesn't exist in either collection
+        // User doesn't exist in any collection
         await _auth.signOut();
         Get.snackbar("Error", "User data not found",
             backgroundColor: Colors.red, colorText: Colors.white);

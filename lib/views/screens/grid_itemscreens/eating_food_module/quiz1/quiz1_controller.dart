@@ -90,7 +90,6 @@ class FoodIdentificationController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Hey kiddo! Welcome to this quiz lets find the correct option for given pictures.",
-        "goingbed_audios/food_identification_audio.mp3",
       );
     });
     resetQuiz();
@@ -99,11 +98,9 @@ class FoodIdentificationController extends GetxController {
   void resetQuiz() {
     score.value = 0;
     
-    // FIX: Create a new mutable list instead of using .take()
     List<Map<String, dynamic>> shuffledFoods = List.from(allFoods);
     shuffledFoods.shuffle();
     
-    // Take first 5 and convert to regular growable list
     questions.value = shuffledFoods.take(5).toList(growable: true);
     
     totalQuestions.value = questions.length;

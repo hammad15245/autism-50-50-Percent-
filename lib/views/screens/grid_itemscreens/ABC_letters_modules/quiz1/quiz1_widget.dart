@@ -1,149 +1,190 @@
-import 'package:audioplayers/audioplayers.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz2/quiz2_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz2/screen.dart';
-import 'package:autism_fyp/views/widget/custom_widget.dart';
-import 'package:confetti/confetti.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'quiz1_controller.dart'; // your ABC letters controller
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:confetti/confetti.dart';
 
-class AlphabetQuiz extends StatefulWidget {
-  final List<String> options = ['A', 'B', 'C', 'D'];
-  final String correctAnswer = 'A';
-
-  AlphabetQuiz({super.key});
-
+class SpeechLetterQuiz extends StatefulWidget {
+  const SpeechLetterQuiz({super.key});
 
   @override
-  State<AlphabetQuiz> createState() => _AlphabetQuizState();
+  State<SpeechLetterQuiz> createState() => _SpeechLetterQuizState();
 }
 
-class _AlphabetQuizState extends State<AlphabetQuiz> {
+class _SpeechLetterQuizState extends State<SpeechLetterQuiz> {
+  final AlphabetQuizController controller = Get.put(AlphabetQuizController());
+  final stt.SpeechToText speechToText = stt.SpeechToText();
   final ConfettiController confettiController =
       ConfettiController(duration: const Duration(seconds: 2));
 
-
-  final AlphabetQuizController controller =
-      Get.put(AlphabetQuizController());
-
-
-
-
+  var isListening = false.obs;
+  var recognizedText = ''.obs;
+  var showFeedback = false.obs;
+  var isCorrect = false.obs;
 
   @override
   void initState() {
     super.initState();
-    final correctIndex = widget.options.indexOf(widget.correctAnswer);
-    controller.correctIndex.value = correctIndex;
+    _initSpeech();
   }
+
+  void _initSpeech() async {
+    bool available = await speechToText.initialize(
+      onStatus: (status) =>
+          isListening.value = status == stt.SpeechToText.listeningStatus,
+      onError: (error) => print("Speech recognition error: $error"),
+    );
+
+    if (!available) Get.snackbar("Error", "Speech recognition not available");
+  }
+
+  void _startListening() async {
+    recognizedText.value = '';
+    showFeedback.value = false;
+
+    await speechToText.listen(
+      onResult: (result) {
+        recognizedText.value = result.recognizedWords;
+
+        controller.checkLetterPronunciation(
+          spokenText: recognizedText.value,
+          onCorrect: _handleCorrectPronunciation,
+          onIncorrect: _handleIncorrectPronunciation,
+        );
+      },
+      listenFor: const Duration(seconds: 5),
+      pauseFor: const Duration(seconds: 3),
+      partialResults: true,
+      localeId: 'en_US',
+    );
+  }
+
+  void _handleCorrectPronunciation() {
+    speechToText.stop();
+    isCorrect.value = true;
+    showFeedback.value = true;
+    confettiController.play();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      showFeedback.value = false;
+      isCorrect.value = false;
+      recognizedText.value = '';
+      controller.nextLetter();
+    });
+  }
+
+  void _handleIncorrectPronunciation() {
+    speechToText.stop();
+    isCorrect.value = false;
+    showFeedback.value = true;
+
+    Future.delayed(const Duration(seconds: 2), () {
+      showFeedback.value = false;
+      recognizedText.value = '';
+      controller.repeatInstruction();
+    });
+  }
+
+  void _repeatInstruction() => controller.repeatInstruction();
 
   @override
   void dispose() {
+    speechToText.stop();
     confettiController.dispose();
     super.dispose();
   }
 
-  void _handleAnswer(int index) {
-    if (!controller.hasAnswered.value) {
-      controller.selectAnswer(index);
-
-      if (index == controller.correctIndex.value) {
-        confettiController.play();
-      }
-
-    Future.delayed(const Duration(seconds: 5), () {
-      Get.to(() => const Quiz2bubble());
-    });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-                  Color buttonColor = const Color(0xFF0E83AD);
-
     return Stack(
       alignment: Alignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.25,
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.blue.shade50,
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.correctAnswer,
-                        style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+              Obx(() {
+                final letter = controller.letters[controller.currentLetterIndex.value];
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.blue.shade50,
+                      ),
+                      child: Center(
+                        child: Text(
+                          letter,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.height * 0.18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.volume_up,
-                        color: Colors.black54,
-                        size: 28,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(Icons.volume_up, color: Colors.black54, size: 28),
+                        onPressed: _repeatInstruction,
                       ),
-                      onPressed: () {
-    controller.playLetter(AssetSource('lib/assets/letters/A.mp3'));
-                      },
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
               const SizedBox(height: 40),
-
-              // Options Grid using CustomElevatedButton and color logic
-              Obx(
-                () => GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 2.5,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 12,
-                  children: List.generate(widget.options.length, (index) {
-                              return ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  
-                  backgroundColor: controller.getButtonColor(index),
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-               onPressed: () => _handleAnswer(index),
-
-                child: Text(widget.options[index]),
-              );
-                  }),
-                ),
-              ),
+              Obx(() => Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: isListening.value ? null : _startListening,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isListening.value ? Colors.grey : Color(0xFF0E83AD),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(20),
+                        ),
+                        child: Icon(
+                          isListening.value ? Icons.mic : Icons.mic_none,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (recognizedText.isNotEmpty)
+                        Text(
+                          "You said: ${recognizedText.value}",
+                          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                        ),
+                      if (showFeedback.value)
+                        Text(
+                          isCorrect.value ? "✅ Correct!" : "❌ Try again!",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: isCorrect.value ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      LinearProgressIndicator(
+                        value: (controller.currentLetterIndex.value + 1) /
+                            controller.letters.length,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0E83AD)),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        "Letter ${controller.currentLetterIndex.value + 1}/${controller.letters.length}",
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  )),
             ],
           ),
         ),
-
-        // Confetti animation for correct answer
         ConfettiWidget(
           confettiController: confettiController,
           blastDirectionality: BlastDirectionality.explosive,

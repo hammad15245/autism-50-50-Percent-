@@ -61,7 +61,7 @@ class Quiz5Controller extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Now Lets Match the correct items! Look carefully and choose the right option.",
-        "goingbed_audios/quiz5_matching_intro.mp3",
+
       );
       _speakCurrentTemplateInstruction();
     });
@@ -82,7 +82,6 @@ class Quiz5Controller extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Correct! Great job matching!",
-        "brushing_teeth_audios/quiz5_correct.mp3",
       );
     } else {
       wrongAnswersCount.value++;
@@ -98,7 +97,6 @@ class Quiz5Controller extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "That's not quite right. Try again!",
-        "brushing_teeth_audios/quiz5_incorrect.mp3",
       );
     }
 
@@ -117,8 +115,7 @@ class Quiz5Controller extends GetxController {
     if (selectedTemplate.value < templateInstructions.length) {
       audioService.setInstructionAndSpeak(
         "Select the matching item for pattern ${selectedTemplate.value + 1}",
-        templateInstructions[selectedTemplate.value],
-      );
+);
     }
   }
 
@@ -142,17 +139,14 @@ class Quiz5Controller extends GetxController {
     if (totalCorrect == templates.length) {
       audioService.setInstructionAndSpeak(
         "Perfect! You matched all ${templates.length} patterns correctly!",
-        "brushing_teeth_audios/quiz5_perfect.mp3",
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $totalCorrect out of ${templates.length} correct.",
-        "brushing_teeth_audios/quiz5_good.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "You got $totalCorrect out of ${templates.length}. Let's practice more!",
-        "brushing_teeth_audios/quiz5_practice.mp3",
       );
     }
   }
@@ -168,7 +162,6 @@ class Quiz5Controller extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try matching the patterns. Find the perfect match.",
-      "brushing_teeth_audios/quiz5_retry.mp3",
     );
     _speakCurrentTemplateInstruction();
   }

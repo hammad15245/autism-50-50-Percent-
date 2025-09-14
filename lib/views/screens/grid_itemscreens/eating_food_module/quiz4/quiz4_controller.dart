@@ -47,7 +47,6 @@ class HealthyTreatController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Kiddos Lets learn about healthy foods! Choose the healthier option and type them for each question.",
-        "goingbed_audios/healthy_treat_intro.mp3",
       );
       _speakQuestion(); // Speak first question after intro
     });
@@ -61,7 +60,6 @@ class HealthyTreatController extends GetxController {
     if (current.containsKey("audio") && current["audio"] != null) {
       audioService.setInstructionAndSpeak(
         questionText,
-        current["audio"],
       );
     } else {
         // audioService.speak(questionText);
@@ -80,7 +78,6 @@ class HealthyTreatController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Great choice! ${healthy["name"]} is the healthier option.",
-        "eating_food_audios/correct_healthy.mp3",
       );
       
       Future.delayed(const Duration(seconds: 3), () {
@@ -101,7 +98,6 @@ class HealthyTreatController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "${healthy["name"]} is the healthier choice. Let's try the next one!",
-        "eating_food_audios/incorrect_healthy.mp3",
       );
     }
   }
@@ -139,17 +135,14 @@ class HealthyTreatController extends GetxController {
     if (earnedScore == total) {
       audioService.setInstructionAndSpeak(
         "Perfect! You got all $total questions correct! You're a healthy eating expert!",
-        "eating_food_audios/perfect_healthy.mp3",
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $earnedScore out of $total correct. You know your healthy foods!",
-        "eating_food_audios/good_healthy.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "Good try! You got $earnedScore out of $total correct. Let's learn more about healthy foods together.",
-        "eating_food_audios/practice_healthy.mp3",
       );
     }
   }
@@ -165,7 +158,6 @@ class HealthyTreatController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try again! Remember to choose the healthier option.",
-      "eating_food_audios/retry_healthy.mp3",
     );
     _speakQuestion();
   }

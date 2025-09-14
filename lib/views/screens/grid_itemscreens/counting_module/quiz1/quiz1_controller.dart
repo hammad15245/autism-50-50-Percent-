@@ -100,7 +100,6 @@ class CountingController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Hey kiddos! Let's practice counting! Look at the items and count how many of each type you see.",
-        "goingbed_audios/counting_intro.mp3",
       );
     });
     
@@ -128,7 +127,6 @@ class CountingController extends GetxController {
       if (currentQuestionData.containsKey("audio")) {
         audioService.setInstructionAndSpeak(
           currentQuestionData["question"],
-          currentQuestionData["audio"],
         );
       } else {
         // audioService.speak(currentQuestionData["question"]);
@@ -159,7 +157,6 @@ class CountingController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Correct! You counted ${currentCount.value} ${currentQuestionData["targetItem"]}s correctly!",
-        "counting_audios/counting_correct.mp3",
       );
     } else {
       wrongAnswersCount.value++;
@@ -175,7 +172,6 @@ class CountingController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "You counted ${currentCount.value}, but there are ${targetNumber.value} ${currentQuestionData["targetItem"]}s. Let's try again!",
-        "counting_audios/counting_incorrect.mp3",
       );
     }
 
@@ -212,17 +208,14 @@ class CountingController extends GetxController {
     if (earnedScore == total) {
       audioService.setInstructionAndSpeak(
         "Perfect! You got all $total questions correct! You're a counting expert!",
-        "counting_audios/counting_perfect.mp3",
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $earnedScore out of $total correct. Great counting!",
-        "counting_audios/counting_good.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "Good try! You got $earnedScore out of $total correct. Let's practice more counting together.",
-        "counting_audios/counting_practice.mp3",
       );
     }
   }
@@ -233,7 +226,6 @@ class CountingController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try counting again! Remember to look carefully at each item.",
-      "counting_audios/counting_retry.mp3",
     );
   }
 

@@ -35,7 +35,6 @@ class FoodGroupController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Okay kiddos! Let's drag each food to its correct group.",
-        "goingbed_audios/food_groups_instruction.mp3",
       );
     });
   }
@@ -124,7 +123,6 @@ class FoodGroupController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Good job! $foodName belongs to ${group["name"]}",
-        "eating_food_audios/correct_feedback.mp3",
       );
     } else {
       wrongAnswersCount.value++;
@@ -140,7 +138,6 @@ class FoodGroupController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "Oops! $foodName does not belong to ${group["name"]}",
-        "eating_food_audios/incorrect_feedback.mp3",
       );
       
       // Return incorrect items to available foods after a delay
@@ -226,17 +223,14 @@ class FoodGroupController extends GetxController {
     if (correctCount == total) {
       audioService.setInstructionAndSpeak(
         "Perfect! You sorted all $total foods correctly!",
-        "eating_food_audios/perfect_score.mp3",
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $correctCount out of $total correct.",
-        "eating_food_audios/good_score.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "Good try! You got $correctCount out of $total correct. Let's practice more.",
-        "eating_food_audios/need_practice.mp3",
       );
     }
   }
@@ -259,7 +253,6 @@ class FoodGroupController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try again! Drag each food to its correct group.",
-      "eating_food_audios/retry_instruction.mp3",
     );
   }
 

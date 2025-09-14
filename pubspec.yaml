@@ -51,12 +51,16 @@ dependencies:
   painter: ^2.0.0
   animated_notch_bottom_bar: ^1.0.3
   uuid: ^4.5.1
-  audioplayers: ^6.5.0
+  audioplayers: ^6.5.1
   flutter_tts: ^4.2.3
   lottie: ^3.3.1
   process_run: ^1.2.2+1
   flame: ^1.30.1
   flame_audio: ^2.11.8
+  http: ^1.5.0
+  path_provider: ^2.1.5
+  speech_to_text: ^7.3.0
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -109,7 +113,21 @@ flutter:
     - lib/assets/quiz1_birds/
     - lib/assets/home_animals/
     - lib/assets/game_assets/
-
+    - assets/images/player.png
+    - assets/images/star.png
+    - assets/images/bg.png
+    - assets/audio/bg_music.mp3
+    - assets/audio/catch_sound.mp3
+    - assets/audio/point_sound.mp3
+    - assets/audio/jump_sound.mp3
+    - assets/audio/bg_music2.mp3
+    - assets/images/fish1.png
+    - assets/images/fish2.png
+    - assets/images/fish3.png
+    - assets/images/coral_top.png
+    - assets/images/coral_bottom.png
+    - assets/images/ocean_bg.png
+    - assets/Videos/splash.mp4
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

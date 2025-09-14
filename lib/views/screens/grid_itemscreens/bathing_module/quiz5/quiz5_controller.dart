@@ -9,43 +9,37 @@ class AfterBathController extends GetxController {
       "id": "dry",
       "name": "Dry with towel",
       "icon": "lib/assets/afterbath/towel.png",
-      "description": "Dry your body completely",
-      "audio": "bathing_audios/dry_towel.mp3"
+      "description": "Dry your body completely"
     },
     {
       "id": "lotion",
       "name": "Apply lotion",
       "icon": "lib/assets/afterbath/lotion.png",
-      "description": "Moisturize your skin",
-      "audio": "bathing_audios/apply_lotion.mp3"
+      "description": "Moisturize your skin"
     },
     {
       "id": "dress",
       "name": "Put on clothes",
       "icon": "lib/assets/afterbath/clean_clothes.png",
-      "description": "Get dressed in clean clothes",
-      "audio": "bathing_audios/put_clothes.mp3"
+      "description": "Get dressed in clean clothes"
     },
     {
       "id": "comb",
       "name": "Comb hair",
       "icon": "lib/assets/afterbath/comb.png",
-      "description": "Comb your hair neatly",
-      "audio": "bathing_audios/comb_hair.mp3"
+      "description": "Comb your hair neatly"
     },
     {
       "id": "slippers",
       "name": "Wear slippers",
       "icon": "lib/assets/afterbath/slippers.png",
-      "description": "Put on comfortable slippers",
-      "audio": "bathing_audios/wear_slippers.mp3"
+      "description": "Put on comfortable slippers"
     },
     {
       "id": "clean",
       "name": "Clean area",
       "icon": "lib/assets/afterbath/cleanbath.png",
-      "description": "Tidy up the bathroom",
-      "audio": "bathing_audios/clean_area.mp3"
+      "description": "Tidy up the bathroom"
     },
   ];
 
@@ -73,12 +67,10 @@ class AfterBathController extends GetxController {
     
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
-        "Let's arrange the after-bath steps in the correct order!",
-        "goingbed_audios/afterbath_intro.mp3",
+        "Let's arrange the after-bath steps in the correct order!"
       );
     });
     
-    // Only reset if not already initialized
     if (!_isInitialized) {
       resetQuiz();
       _isInitialized = true;
@@ -95,8 +87,7 @@ class AfterBathController extends GetxController {
     retries.value++;
     
     audioService.setInstructionAndSpeak(
-      "Arrange the after-bath steps in the correct sequence!",
-      "bathing_audios/afterbath_retry.mp3",
+      "Arrange the after-bath steps in the correct sequence!"
     );
   }
 
@@ -104,9 +95,7 @@ class AfterBathController extends GetxController {
     if (currentSequence.length < totalSteps.value) {
       currentSequence.add(step);
       availableSteps.remove(step);
-      
-      // Play placement sound
-      // audioService.playSoundEffect("bathing_audios/step_placed.mp3");
+      audioService.speakText("Added step: ${step["name"]}");
     }
   }
 
@@ -114,9 +103,7 @@ class AfterBathController extends GetxController {
     if (index < currentSequence.length) {
       var step = currentSequence.removeAt(index);
       availableSteps.add(step);
-      
-      // Play removal sound
-      // audioService.playSoundEffect("bathing_audios/step_removed.mp3");
+      audioService.speakText("Removed step: ${step["name"]}");
     }
   }
 
@@ -137,11 +124,9 @@ class AfterBathController extends GetxController {
       
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
-        "Excellent! You arranged the after-bath routine perfectly!",
-        "bathing_audios/afterbath_perfect.mp3",
+        "Excellent! You arranged the after-bath routine perfectly!"
       );
       
-      // Record quiz result
       bathingModuleController.recordQuizResult(
         quizId: "quiz5",
         score: totalSteps.value,
@@ -160,11 +145,9 @@ class AfterBathController extends GetxController {
         duration: const Duration(seconds: 3),
       );
     } else if (currentSequence.length == totalSteps.value) {
-      // All steps placed but incorrect order
       wrongAttempts.value++;
       audioService.playIncorrectFeedback();
       
-      // Record wrong attempt
       bathingModuleController.recordWrongAnswer(
         quizId: "quiz5",
         questionId: "After-bath sequence",
@@ -177,23 +160,15 @@ class AfterBathController extends GetxController {
   void moveToSequence(int availableIndex, int targetIndex) {
     if (availableIndex < availableSteps.length) {
       final step = availableSteps[availableIndex];
-      
-      // Remove the step from available first
       availableSteps.removeAt(availableIndex);
       
-      // Insert at the target position if valid, otherwise append
       if (targetIndex >= 0 && targetIndex <= currentSequence.length) {
         currentSequence.insert(targetIndex, step);
       } else {
         currentSequence.add(step);
       }
       
-      // Play step audio
-      final stepAudio = step["audio"];
-      if (stepAudio != null) {
-        // audioService.playSoundEffect(stepAudio);
-      }
-      
+      audioService.speakText("Placed: ${step["name"]}");
       update();
     }
   }
@@ -205,7 +180,6 @@ class AfterBathController extends GetxController {
   }
 
   void checkAnswerAndNavigate() {
-    // Check the sequence only when the user clicks "Check"
     checkSequence();
     
     if (isSequenceCorrect.value) {
@@ -229,20 +203,13 @@ class AfterBathController extends GetxController {
   }
 
   void playStepAudio(Map<String, String> step) {
-    final stepAudio = step["audio"];
-    // if (stepAudio != null) {
-    //   audioService.playSoundEffect(stepAudio);
-    // } else {
-    //   audioService.speak(step["name"] ?? "");
-    // }
+    audioService.speakText(step["description"] ?? step["name"] ?? "");
   }
 
-  // Get progress percentage
   double getProgressPercentage() {
     return currentSequence.length / totalSteps.value;
   }
 
-  // Get remaining steps count
   int getRemainingSteps() {
     return totalSteps.value - currentSequence.length;
   }

@@ -12,7 +12,7 @@ class MatchSoundController extends GetxController {
   final List<Map<String, dynamic>> quizQuestions = [
     {
       "id": 1,
-      "soundFile": "alarm", // just file name, no extension
+      "soundPrompt": "Play the sound of an alarm clock ringing loudly.",
       "correctAnswer": "alarm",
       "options": [
         {"id": "alarm", "name": "Alarm Clock", "icon": "lib/assets/quiz_wakeup/clock.png"},
@@ -21,7 +21,7 @@ class MatchSoundController extends GetxController {
     },
     {
       "id": 2,
-      "soundFile": "rooster",
+      "soundPrompt": "Play the sound of a rooster crowing in the morning.",
       "correctAnswer": "rooster",
       "options": [
         {"id": "rooster", "name": "Rooster", "icon": "lib/assets/quiz_wakeup/rooster.png"},
@@ -38,23 +38,22 @@ class MatchSoundController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    setInstruction("listen to the sound carefully and tap the picture that belongs to sound.",
-     "goingbed_audios/matchsound_audio.mp3");
-     Future.delayed(const Duration(seconds: 7), () {
-         loadQuestion();
-
+    setInstruction(
+      "Listen to the sound carefully and tap the picture that matches it.",
+    );
+    Future.delayed(const Duration(seconds: 3), () {
+      loadQuestion();
     });
   }
 
   void playSound() {
-    final currentSound = quizQuestions[currentQuestionIndex.value]["soundFile"];
-    audioService.playAudioFromPath(currentSound);
+    final soundPrompt = quizQuestions[currentQuestionIndex.value]["soundPrompt"];
+    audioService.speakText(soundPrompt);
   }
 
   void loadQuestion() {
     selectedAnswer.value = '';
     showFeedback.value = false;
-
     Future.delayed(const Duration(milliseconds: 800), () {
       playSound();
     });
@@ -70,8 +69,10 @@ class MatchSoundController extends GetxController {
 
     if (isAnswerCorrect) {
       audioService.playCorrectFeedback();
+      audioService.speakText("Correct! This sound was for ${currentQuestion["options"].firstWhere((e) => e["id"] == answerId)["name"]}.");
     } else {
       audioService.playIncorrectFeedback();
+      audioService.speakText("Oops, that's not correct. Try again!");
     }
   }
 
@@ -80,18 +81,12 @@ class MatchSoundController extends GetxController {
       currentQuestionIndex.value++;
       loadQuestion();
     } else {
-     
       Get.to(() => const BreakfastSortingscreen());
-      
-
-    
     }
   }
 
-
-
-  void setInstruction(String text, String audioPath) {
-    audioService.setInstructionAndSpeak(text, audioPath);
+  void setInstruction(String text) {
+    audioService.speakText(text);
   }
 
   Map<String, dynamic> get currentQuestion => quizQuestions[currentQuestionIndex.value];

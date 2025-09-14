@@ -1,4 +1,3 @@
-// brushing_teeth_quiz1_controller.dart
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth_module_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,11 +24,9 @@ class BrushingTeethQuiz1Controller extends GetxController {
   void onInit() {
     super.onInit();
     correctIndex = options.indexOf(correctAnswer);
-    
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
-        "Hey kiddos! Welcome to this module. Lets learn about brushing teeth! What do we use for brushing our teeth?",
-        "goingbed_audios/brushing_teeth_intro.mp3",
+        "Hey kiddos! Welcome to this module. Let's learn about brushing teeth! What do we use for brushing our teeth?"
       );
     });
   }
@@ -43,22 +40,20 @@ class BrushingTeethQuiz1Controller extends GetxController {
 
   void selectAnswer(int index) {
     if (hasAnswered.value) return;
-    
+
     selectedIndex.value = index;
     hasAnswered.value = true;
     showFeedback.value = true;
-    
+
     final isAnswerCorrect = index == correctIndex;
     isCorrect.value = isAnswerCorrect;
-    
+
     if (isAnswerCorrect) {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
-        "Correct! We use a toothbrush for brushing teeth!",
-        "brushing_teeth_audios/quiz1_correct.mp3",
+        "Correct! We use a toothbrush for brushing teeth!"
       );
-      
-      // Record successful quiz completion
+
       brushingTeethController.recordQuizResult(
         quizId: "quiz1",
         score: 1,
@@ -66,29 +61,23 @@ class BrushingTeethQuiz1Controller extends GetxController {
         isCompleted: true,
         wrongAnswersCount: 0,
       );
-      
+
       brushingTeethController.syncModuleProgress();
-      
     } else {
       retries.value++;
       audioService.playIncorrectFeedback();
-      
-      // Record wrong answer
+
       brushingTeethController.recordWrongAnswer(
         quizId: "quiz1",
         wrongAnswer: options[index],
         correctAnswer: correctAnswer,
       );
-      
+
       audioService.setInstructionAndSpeak(
-        "That's not quite right. We use a toothbrush for brushing teeth.",
-        "brushing_teeth_audios/quiz1_incorrect.mp3",
+        "That's not quite right. We use a toothbrush for brushing teeth."
       );
-      
-      // Auto-reset after delay for wrong answers
-      Future.delayed(const Duration(seconds: 3), () {
-        resetAnswer();
-      });
+
+      Future.delayed(const Duration(seconds: 3), resetAnswer);
     }
   }
 
@@ -101,29 +90,25 @@ class BrushingTeethQuiz1Controller extends GetxController {
 
   Color getButtonColor(int index) {
     if (!hasAnswered.value) return const Color(0xFF0E83AD);
-    
+
     if (index == selectedIndex.value) {
       return index == correctIndex ? Colors.green : Colors.red;
     }
-    
+
     if (hasAnswered.value && index == correctIndex) {
       return Colors.green;
     }
-    
+
     return const Color(0xFF0E83AD);
   }
 
-  bool isButtonDisabled(int index) {
-    return hasAnswered.value;
-  }
+  bool isButtonDisabled(int index) => hasAnswered.value;
 
   void retryQuiz() {
     retries.value++;
     initializeQuiz();
-    
     audioService.setInstructionAndSpeak(
-      "Let's try again! What do we use for brushing teeth?",
-      "brushing_teeth_audios/quiz1_retry.mp3",
+      "Let's try again! What do we use for brushing teeth?"
     );
   }
 

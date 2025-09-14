@@ -41,7 +41,7 @@ class Quiz4Controller extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Great now lets Match the items correctly! Drag from left to right to make pairs.",
-        "goingbed_audios/matching_quiz4_intro.mp3",
+
       );
     });
   }
@@ -83,7 +83,6 @@ class Quiz4Controller extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Perfect! You matched all ${correctPairs.length} pairs correctly!",
-        "brushing_teeth_audios/quiz4_perfect.mp3",
       );
       
       _recordQuizResult();
@@ -96,7 +95,6 @@ class Quiz4Controller extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Good job! You got ${correctCount.value} out of ${correctPairs.length} pairs correct.",
-        "brushing_teeth_audios/quiz4_good.mp3",
       );
       
       // Record quiz result
@@ -106,7 +104,6 @@ class Quiz4Controller extends GetxController {
       audioService.playIncorrectFeedback();
       audioService.setInstructionAndSpeak(
         "You got ${correctCount.value} out of ${correctPairs.length}. Let's try again!",
-        "brushing_teeth_audios/quiz4_try_again.mp3",
       );
       
       retries.value++;
@@ -139,7 +136,6 @@ class Quiz4Controller extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try matching again!",
-      "brushing_teeth_audios/quiz4_retry.mp3",
     );
   }
 

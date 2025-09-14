@@ -44,7 +44,6 @@ class Quiz3answer extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Ok kiddos lets Fill in the missing letters to complete the brushing teeth words!",
-        "goingbed_audios/missing_letters_quiz3.mp3",
       );
     });
   }
@@ -103,7 +102,6 @@ void checkAllAnswers() {
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
       "Perfect! You got all ${answers.length} answers correct!",
-      "brushing_teeth_audios/quiz3_perfect.mp3",
     );
     
     // Record quiz result
@@ -117,7 +115,6 @@ void checkAllAnswers() {
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
       "Good job! You got $correct out of ${answers.length} correct.",
-      "brushing_teeth_audios/quiz3_good.mp3",
     );
     
     // Record quiz result
@@ -127,7 +124,6 @@ void checkAllAnswers() {
     audioService.playIncorrectFeedback();
     audioService.setInstructionAndSpeak(
       "You got $correct out of ${answers.length}. Let's try again!",
-      "brushing_teeth_audios/quiz3_try_again.mp3",
     );
     
     retries.value++;
@@ -160,7 +156,6 @@ void checkAllAnswers() {
     
     audioService.setInstructionAndSpeak(
       "Let's try filling the missing letters again!",
-      "brushing_teeth_audios/quiz3_retry.mp3",
     );
   }
 

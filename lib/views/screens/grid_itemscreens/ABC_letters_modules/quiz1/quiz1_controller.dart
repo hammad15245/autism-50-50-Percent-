@@ -1,169 +1,146 @@
-import 'package:audioplayers/audioplayers.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/abc_letters_module_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
+import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/abc_letters_module_controller.dart';
 
 class AlphabetQuizController extends GetxController {
-  // Quiz state
-  var hasAnswered = false.obs;
-  var selectedIndex = (-1).obs;
-  var correctIndex = 0.obs; // index of correct answer
-  var retries = 0.obs;
-  var wrongAttempts = 0.obs;
-  var hasSubmitted = false.obs;
-  var showCompletion = false.obs;
-
-  // Options for the quiz
-  final List<String> options = ['A', 'B', 'C', 'D'];
-  final String correctAnswer = 'A';
-
-  // Audio players
-  final AudioPlayer _audioPlayer = AudioPlayer();
   final audioService = AudioInstructionService.to;
   final abcModuleController = Get.find<AbcLettersModuleController>();
+
+  var currentLetterIndex = 0.obs;
+  var retries = 0.obs;
+  var wrongAttempts = 0.obs;
 
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
+  // ✅ Only A → D now
+  final List<String> letters = ['A', 'B', 'C', 'D'];
+
+  final Map<String, List<String>> fuzzyLetterMap = {
+    'A': ['A', 'AY', 'EH', 'EI'],
+    'B': ['B', 'BE', 'BI', 'BEE'],
+    'C': ['C', 'SEE', 'SI', 'SEA'],
+    'D': ['D', 'DEE', 'DI', 'DE'],
+  };
+
   @override
   void onInit() {
     super.onInit();
-    // Initialize correct index based on correct answer
-    correctIndex.value = options.indexOf(correctAnswer);
-    
-    Future.delayed(Duration.zero, () {
-      audioService.setInstructionAndSpeak(
-        "Hey kiddos Lets learn the letter A! Tap the correct letter.",
-        "goingbed_audios/letter_a_intro.mp3",
-      );
-    });
+    Future.delayed(Duration.zero, _speakCurrentLetter);
   }
 
   @override
   void onClose() {
-    _audioPlayer.dispose();
     audioService.stopSpeaking();
     super.onClose();
   }
 
-  // Handle answer selection
-  void selectAnswer(int index) {
-    if (!hasAnswered.value && !hasSubmitted.value) {
-      selectedIndex.value = index;
-      hasAnswered.value = true;
-      
-      final isCorrect = index == correctIndex.value;
-      
-      if (isCorrect) {
-        // Play correct feedback
-        audioService.playCorrectFeedback();
-        audioService.setInstructionAndSpeak(
-          "Great job! That's the letter A!",
-          "abc_audios/letter_a_correct.mp3",
-        );
-        
-        // Complete the quiz
-        completeQuiz();
-      } else {
-        // Play incorrect feedback
-        audioService.playIncorrectFeedback();
-        wrongAttempts.value++;
-        
-        // Record wrong answer
-        abcModuleController.recordWrongAnswer(
-          quizId: "quiz1",
-          questionId: "Letter A identification",
-          wrongAnswer: "Selected ${options[index]}",
-          correctAnswer: "Should select A",
-        );
-        
-        audioService.setInstructionAndSpeak(
-          "Try again! Find the letter A.",
-          "abc_audios/letter_a_try_again.mp3",
-        );
-      }
+  void _speakCurrentLetter() {
+    final letter = letters[currentLetterIndex.value];
+    audioService.setInstructionAndSpeak(
+      "Hey kiddos! Let's learn the letter $letter. Repeat after me: $letter.",
+    );
+  }
+
+  /// ✅ Check pronunciation and drill user if wrong
+  void checkLetterPronunciation({
+    required String spokenText,
+    required VoidCallback onCorrect,
+    required VoidCallback onIncorrect,
+  }) async {
+    final targetLetter = letters[currentLetterIndex.value];
+    final cleanedText = spokenText.trim().toUpperCase();
+    final acceptableVariants = fuzzyLetterMap[targetLetter] ?? [targetLetter];
+    print("STT raw result: $spokenText");
+
+    if (acceptableVariants.any((variant) => cleanedText.contains(variant))) {
+      await _playCorrectFeedback(onCorrect);
+    } else {
+      await _playDrillFeedback(cleanedText, onIncorrect);
     }
   }
 
-  // Get color for each button
-  Color getButtonColor(int index) {
-    if (!hasAnswered.value) return const Color(0xFF0E83AD);
+  /// ✅ Correct pronunciation feedback (with 5s delay before moving on)
+  Future<void> _playCorrectFeedback(VoidCallback onCorrect) async {
+    audioService.playCorrectFeedback(
+        message: "Excellent! You pronounced it correctly!");
+    onCorrect();
 
-    if (index == selectedIndex.value) {
-      return index == correctIndex.value ? Colors.green : Colors.red;
-    }
-
-    // Show correct answer green after selection
-    if (hasAnswered.value && index == correctIndex.value) {
-      return Colors.green;
-    }
-
-    return const Color(0xFF0E83AD); // default blue
+    // ✅ Wait 5 seconds before automatically moving to next letter
+    await Future.delayed(const Duration(seconds: 5));
+    nextLetter();
   }
 
-  // Play letter sound
-  Future<void> playLetter(AssetSource source) async {
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(source);
-    } catch (e) {
-      debugPrint("Error playing letter sound: $e");
+  /// 🔄 Drill for incorrect pronunciation
+  Future<void> _playDrillFeedback(
+      String spokenText, VoidCallback onIncorrect) async {
+    wrongAttempts.value++;
+    retries.value++;
+
+    final targetLetter = letters[currentLetterIndex.value];
+
+    abcModuleController.recordWrongAnswer(
+      quizId: "speech_quiz",
+      questionId: "Letter $targetLetter pronunciation",
+      wrongAnswer: "Said: $spokenText",
+      correctAnswer: "Should say: $targetLetter",
+    );
+
+    await audioService.playIncorrectFeedback(
+      message:
+          "Oops! That wasn't correct. Let's try saying $targetLetter slowly.",
+    );
+
+    await Future.delayed(const Duration(seconds: 2));
+    audioService.setInstructionAndSpeak(
+      "Say the letter $targetLetter clearly. Repeat after me: $targetLetter.",
+    );
+
+    onIncorrect();
+  }
+
+  /// ➡ Move to next letter or complete the quiz
+  void nextLetter() {
+    if (currentLetterIndex.value < letters.length - 1) {
+      currentLetterIndex.value++;
+      _speakCurrentLetter();
+    } else {
+      completeQuiz();
     }
   }
 
-  // Play letter A audio specifically
-  void playLetterA() {
-    playLetter(AssetSource("abc_audios/letter_a_sound.mp3"));
-  }
-
-  // Complete the quiz
+  /// ✅ Complete the quiz
   void completeQuiz() {
-    showCompletion.value = true;
-    hasSubmitted.value = true;
-    
-    // Record quiz result
+    final totalLetters = letters.length;
+
     abcModuleController.recordQuizResult(
-      quizId: "quiz1",
-      score: 1, // 1 point for correct answer
+      quizId: "speech_quiz",
+      score: totalLetters,
       retries: retries.value,
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
-    // Sync progress
+
     abcModuleController.syncModuleProgress();
-    
+
+    audioService.playCorrectFeedback(
+        message: "Amazing! You pronounced all letters correctly!");
     Get.snackbar(
-      "Excellent! 🎉",
-      "You found the letter A!",
+      "Congratulations! 🎉",
+      "You completed the alphabet quiz!",
       backgroundColor: Colors.green.shade300,
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
     );
   }
 
-  // Reset quiz state
+  void repeatInstruction() => _speakCurrentLetter();
+
   void resetQuiz() {
-    hasAnswered.value = false;
-    selectedIndex.value = -1;
-    hasSubmitted.value = false;
-    showCompletion.value = false;
-    retries.value++;
-    
-    audioService.setInstructionAndSpeak(
-      "Let's try finding the letter A again!",
-      "abc_audios/letter_a_retry.mp3",
-    );
-  }
-
-  // Check if user can proceed (for navigation)
-  bool canProceed() {
-    return hasSubmitted.value && selectedIndex.value == correctIndex.value;
-  }
-
-  // Get progress percentage (for UI)
-  double getProgress() {
-    return hasSubmitted.value ? 1.0 : 0.0;
+    currentLetterIndex.value = 0;
+    retries.value = 0;
+    wrongAttempts.value = 0;
+    _speakCurrentLetter();
   }
 }

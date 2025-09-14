@@ -16,7 +16,6 @@ class birdcontroller extends GetxController {
   var isCorrect = false.obs;
   var score = 0.obs;
 
-  // Progress tracking
   var retries = 0.obs;
   var wrongAttempts = 0.obs;
   var hasSubmitted = false.obs;
@@ -26,8 +25,8 @@ class birdcontroller extends GetxController {
     {
       "question": "Listen carefully! Which bird makes this sound?",
       "correctBird": "sparrow",
-      "audio": "sparrow", 
-      "options": [
+      "audio": "Sparrow sound"
+      , "options": [
         {
           "id": "sparrow",
           "name": "Sparrow",
@@ -42,9 +41,8 @@ class birdcontroller extends GetxController {
     },
     {
       "question": "Can you identify this bird sound?",
-      "instruction": "Listen to the sound! Which bird is singing?",
       "correctBird": "owl",
-      "audio": "owl",
+      "audio": "Owl sound",
       "options": [
         {
           "id": "robin",
@@ -64,8 +62,7 @@ class birdcontroller extends GetxController {
   void onInit() {
     super.onInit();
     audioService.setInstructionAndSpeak(
-      "Hey kiddos! Welcome to Bird Sound Matching. Listen to the sounds and find the right bird.",
-      "goingbed_audios/birds_intro.mp3",
+      "Hey kiddos! Welcome to Bird Sound Matching. Listen to the sounds and find the right bird."
     ).then((_) {
       Future.delayed(const Duration(seconds: 2), () {
         loadCurrentQuestion();
@@ -85,7 +82,9 @@ class birdcontroller extends GetxController {
 
   void playQuestionSound() {
     final currentAudio = questions[currentQuestionIndex.value]["audio"];
-    audioService.playAudioFromPath(currentAudio);
+    if (currentAudio != null) {
+      audioService.speakText("Playing bird sound: $currentAudio");
+    }
   }
 
   void checkAnswer(String birdId) {
@@ -99,16 +98,14 @@ class birdcontroller extends GetxController {
     if (isCorrect.value) {
       score.value++;
       audioService.playCorrectFeedback();
-      
-      // Record successful question completion
+
       if (isLastQuestion) {
         completeQuiz();
       }
     } else {
       wrongAttempts.value++;
       audioService.playIncorrectFeedback();
-      
-      // Record wrong attempt
+
       birdsModuleController.recordWrongAnswer(
         quizId: "quiz1",
         questionId: "Question ${currentQuestionIndex.value + 1}",
@@ -133,11 +130,9 @@ class birdcontroller extends GetxController {
     
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
-      "Excellent! You identified all the bird sounds correctly!",
-      "goingbed_audios/birds_complete.mp3",
+      "Excellent! You identified all the bird sounds correctly!"
     );
     
-    // Record quiz result
     birdsModuleController.recordQuizResult(
       quizId: "quiz1",
       score: score.value,
@@ -146,14 +141,13 @@ class birdcontroller extends GetxController {
       wrongAnswersCount: wrongAttempts.value,
     );
     
-    // Sync progress
     birdsModuleController.syncModuleProgress();
   }
 
   void retryQuestion() {
     showFeedback.value = false;
     selectedBird.value = '';
-    playQuestionSound(); // Replay the sound for retry
+    playQuestionSound();
   }
 
   void resetQuiz() {
@@ -168,8 +162,7 @@ class birdcontroller extends GetxController {
     showCompletion.value = false;
     
     audioService.setInstructionAndSpeak(
-      "Let's listen to the bird sounds again!",
-      "goingbed_audios/birds_reset.mp3",
+      "Let's listen to the bird sounds again!"
     ).then((_) {
       Future.delayed(const Duration(seconds: 2), () {
         loadCurrentQuestion();
@@ -179,17 +172,14 @@ class birdcontroller extends GetxController {
 
   void checkAnswerAndNavigate() {
     if (hasSubmitted.value && showCompletion.value) {
-      // Navigate to the next screen
       Get.to(() => const BirdHabitatscreen());
     } else {
-      // If not completed, just check the answer
       if (selectedBird.value.isNotEmpty) {
         checkAnswer(selectedBird.value);
       }
     }
   }
 
-  // Progress tracking methods
   double getProgressPercentage() {
     return (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
   }

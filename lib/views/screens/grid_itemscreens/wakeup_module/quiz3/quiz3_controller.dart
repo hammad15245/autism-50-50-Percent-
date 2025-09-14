@@ -53,7 +53,6 @@ class BreakfastSortingController extends GetxController {
     // Play intro instruction first
     audioService.setInstructionAndSpeak(
       "Kiddos! lets start final quiz and it is about choosing healthy items for breakfast.",
-      "goingbed_audios/breakfast_audio.mp3", 
     ).then((_) {
       // AFTER intro audio finishes, load first question
       Future.delayed(const Duration(seconds: 1), () {
@@ -77,7 +76,7 @@ class BreakfastSortingController extends GetxController {
 
   void playQuestionAudio() {
     final currentAudio = questions[currentQuestionIndex.value]["audio"];
-    audioService.playAudioFromPath(currentAudio);
+    audioService.speakText(currentAudio);
   }
 
   void toggleSelection(Map<String, dynamic> food) {
@@ -111,7 +110,6 @@ class BreakfastSortingController extends GetxController {
       Future.delayed(const Duration(seconds: 1), () {
         audioService.setInstructionAndSpeak(
           "Great job! You finished all breakfast questions!",
-          "goingbed_audios/quiz_complete.mp3",
         );
       });
     }
@@ -124,7 +122,6 @@ class BreakfastSortingController extends GetxController {
     // Play reset instruction first
     audioService.setInstructionAndSpeak(
       "Let's start over! Choose healthy breakfast foods.",
-      "goingbed_audios/breakfast_reset.mp3",
     ).then((_) {
       // AFTER reset audio finishes, load question
       Future.delayed(const Duration(seconds: 1), () {

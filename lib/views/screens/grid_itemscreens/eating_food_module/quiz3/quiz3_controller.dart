@@ -31,7 +31,6 @@ class HealthyChoicesController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "kiddos lets Drag the items into any basket you want. Try sorting them correctly. Clean items go into the Clean basket, and dirty items go into the Dirty basket.",
-        "goingbed_audios/clean_sorting_instruction.mp3",
       );
     });
   }
@@ -87,7 +86,6 @@ class HealthyChoicesController extends GetxController {
       audioService.playCorrectFeedback();
       audioService.setInstructionAndSpeak(
         "Good job! ${item["name"]} belongs in the $basketName basket.",
-        "eating_food_audios/correct_sorting.mp3",
       );
     } else {
       wrongAnswersCount.value++;
@@ -104,7 +102,6 @@ class HealthyChoicesController extends GetxController {
       
       audioService.setInstructionAndSpeak(
         "${item["name"]} should go in the ${item["type"] == "clean" ? "Clean" : "Dirty"} basket.",
-        "eating_food_audios/incorrect_sorting.mp3",
       );
       
       // Return incorrect items to available foods after a delay
@@ -148,17 +145,14 @@ class HealthyChoicesController extends GetxController {
     if (correctCount == total) {
       audioService.setInstructionAndSpeak(
         "Perfect! You sorted all $total items correctly!",
-        "eating_food_audios/perfect_sorting.mp3",
       );
     } else if (isPassed) {
       audioService.setInstructionAndSpeak(
         "Good job! You got $correctCount out of $total correct.",
-        "eating_food_audios/good_sorting.mp3",
       );
     } else {
       audioService.setInstructionAndSpeak(
         "Good try! You got $correctCount out of $total correct. Let's practice more.",
-        "eating_food_audios/need_practice_sorting.mp3",
       );
     }
   }
@@ -169,7 +163,6 @@ class HealthyChoicesController extends GetxController {
     
     audioService.setInstructionAndSpeak(
       "Let's try again! Drag each item to the correct basket.",
-      "eating_food_audios/retry_sorting.mp3",
     );
   }
 

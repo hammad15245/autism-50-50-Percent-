@@ -15,7 +15,6 @@ class BirdHabitatController extends GetxController {
   var isCorrect = false.obs;
   var draggedBird = RxString('');
 
-  // Progress tracking
   var retries = 0.obs;
   var wrongAttempts = 0.obs;
   var hasSubmitted = false.obs;
@@ -24,7 +23,6 @@ class BirdHabitatController extends GetxController {
   final List<Map<String, dynamic>> questions = [
     {
       "question": "Match birds to their homes!",
-      // "audio": "habitat_intro",
       "habitats": [
         {
           "type": "forest",
@@ -46,42 +44,12 @@ class BirdHabitatController extends GetxController {
         }
       ],
       "birds": [
-        {
-          "id": "owl",
-          "name": "Owl",
-          "icon": "lib/assets/quiz1_birds/owl.png",
-          "correctHabitat": "forest"
-        },
-        {
-          "id": "duck",
-          "name": "Duck",
-          "icon": "lib/assets/quiz1_birds/duck.png",
-          "correctHabitat": "water"
-        },
-        {
-          "id": "pigeon",
-          "name": "Pigeon", 
-          "icon": "lib/assets/quiz1_birds/pigeon.png",
-          "correctHabitat": "city"
-        },
-        {
-          "id": "woodpecker",
-          "name": "Woodpecker",
-          "icon": "lib/assets/quiz1_birds/woodpecker.png",
-          "correctHabitat": "forest"
-        },
-        {
-          "id": "swan",
-          "name": "Swan",
-          "icon": "lib/assets/quiz1_birds/swan.png",
-          "correctHabitat": "water"
-        },
-        {
-          "id": "sparrow",
-          "name": "Sparrow",
-          "icon": "lib/assets/quiz1_birds/sparrow.png",
-          "correctHabitat": "city"
-        }
+        {"id": "owl", "name": "Owl", "icon": "lib/assets/quiz1_birds/owl.png", "correctHabitat": "forest"},
+        {"id": "duck", "name": "Duck", "icon": "lib/assets/quiz1_birds/duck.png", "correctHabitat": "water"},
+        {"id": "pigeon", "name": "Pigeon", "icon": "lib/assets/quiz1_birds/pigeon.png", "correctHabitat": "city"},
+        {"id": "woodpecker", "name": "Woodpecker", "icon": "lib/assets/quiz1_birds/woodpecker.png", "correctHabitat": "forest"},
+        {"id": "swan", "name": "Swan", "icon": "lib/assets/quiz1_birds/swan.png", "correctHabitat": "water"},
+        {"id": "sparrow", "name": "Sparrow", "icon": "lib/assets/quiz1_birds/sparrow.png", "correctHabitat": "city"},
       ]
     }
   ];
@@ -94,12 +62,9 @@ class BirdHabitatController extends GetxController {
   void onInit() {
     super.onInit();
     audioService.setInstructionAndSpeak(
-      "Lets solve the quiz for Bird Habitat Matching! Drag birds to their homes.",
-      "goingbed_audios/habitat_intro.mp3",
+      "Let's solve the quiz for Bird Habitat Matching! Drag birds to their homes."
     ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadQuestion();
-      });
+      Future.delayed(const Duration(seconds: 2), () => loadQuestion());
     });
   }
 
@@ -114,7 +79,6 @@ class BirdHabitatController extends GetxController {
 
   void addBirdToHabitat(String birdId, String habitatType) {
     if (hasSubmitted.value) return;
-    
     final birds = currentQuestion["birds"] as List<Map<String, dynamic>>;
     final bird = birds.firstWhere((b) => b["id"] == birdId);
     
@@ -123,38 +87,32 @@ class BirdHabitatController extends GetxController {
     cityBirds.removeWhere((b) => b["id"] == birdId);
 
     switch (habitatType) {
-      case "forest":
-        forestBirds.add(bird);
-        break;
-      case "water":
-        waterBirds.add(bird);
-        break;
-      case "city":
-        cityBirds.add(bird);
-        break;
+      case "forest": forestBirds.add(bird); break;
+      case "water": waterBirds.add(bird); break;
+      case "city": cityBirds.add(bird); break;
     }
   }
 
   void checkAnswer() {
     if (hasSubmitted.value) return;
-    
-    final currentQuestion = this.currentQuestion;
+
+    final q = currentQuestion;
     bool allCorrect = true;
 
-    final forestCorrectIds = currentQuestion["habitats"]
-        .firstWhere((h) => h["type"] == "forest")["correctBirds"];
-    allCorrect = allCorrect && forestBirds.length == forestCorrectIds.length &&
-        forestBirds.every((bird) => forestCorrectIds.contains(bird["id"]));
+    final forestCorrectIds = q["habitats"].firstWhere((h) => h["type"] == "forest")["correctBirds"];
+    allCorrect = allCorrect &&
+        forestBirds.length == forestCorrectIds.length &&
+        forestBirds.every((b) => forestCorrectIds.contains(b["id"]));
 
-    final waterCorrectIds = currentQuestion["habitats"]
-        .firstWhere((h) => h["type"] == "water")["correctBirds"];
-    allCorrect = allCorrect && waterBirds.length == waterCorrectIds.length &&
-        waterBirds.every((bird) => waterCorrectIds.contains(bird["id"]));
+    final waterCorrectIds = q["habitats"].firstWhere((h) => h["type"] == "water")["correctBirds"];
+    allCorrect = allCorrect &&
+        waterBirds.length == waterCorrectIds.length &&
+        waterBirds.every((b) => waterCorrectIds.contains(b["id"]));
 
-    final cityCorrectIds = currentQuestion["habitats"]
-        .firstWhere((h) => h["type"] == "city")["correctBirds"];
-    allCorrect = allCorrect && cityBirds.length == cityCorrectIds.length &&
-        cityBirds.every((bird) => cityCorrectIds.contains(bird["id"]));
+    final cityCorrectIds = q["habitats"].firstWhere((h) => h["type"] == "city")["correctBirds"];
+    allCorrect = allCorrect &&
+        cityBirds.length == cityCorrectIds.length &&
+        cityBirds.every((b) => cityCorrectIds.contains(b["id"]));
 
     isCorrect.value = allCorrect;
     showFeedback.value = true;
@@ -166,8 +124,6 @@ class BirdHabitatController extends GetxController {
     } else {
       wrongAttempts.value++;
       audioService.playIncorrectFeedback();
-      
-      // Record wrong attempt
       birdsModuleController.recordWrongAnswer(
         quizId: "quiz2",
         questionId: "Bird Habitat Matching",
@@ -180,14 +136,8 @@ class BirdHabitatController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
     audioService.playCorrectFeedback();
-    audioService.setInstructionAndSpeak(
-      "Amazing! You helped all birds find their homes!",
-      "goingbed_audios/habitat_complete.mp3",
-    );
-    
-    // Record quiz result
+    audioService.setInstructionAndSpeak("Amazing! You helped all birds find their homes!");
     birdsModuleController.recordQuizResult(
       quizId: "quiz2",
       score: score.value,
@@ -195,26 +145,23 @@ class BirdHabitatController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
-    // Sync progress
     birdsModuleController.syncModuleProgress();
   }
 
   void resetQuestion() {
     loadQuestion();
     retries.value++;
+    audioService.setInstructionAndSpeak("Let's try again! Drag the birds to the correct homes.");
   }
 
   void checkAnswerAndNavigate() {
     if (hasSubmitted.value && showCompletion.value) {
-      // Navigate to the next screen
-      // Get.to(() => const NextScreen());
+      // Navigation handled outside
     } else {
       checkAnswer();
     }
   }
 
-  // Progress tracking methods
   double getProgressPercentage() {
     final totalBirds = currentQuestion["birds"].length;
     final placedBirds = forestBirds.length + waterBirds.length + cityBirds.length;
@@ -235,13 +182,11 @@ class BirdHabitatController extends GetxController {
 
   Map<String, dynamic> get currentQuestion {
     if (currentQuestionIndex.value >= questions.length) {
-      currentQuestionIndex.value = 0; // fallback safety
+      currentQuestionIndex.value = 0;
     }
-    final question = questions[currentQuestionIndex.value];
-    question["birds"] = (question["birds"] as List)
-        .map((b) => Map<String, dynamic>.from(b))
-        .toList();
-    return question;
+    final q = questions[currentQuestionIndex.value];
+    q["birds"] = (q["birds"] as List).map((b) => Map<String, dynamic>.from(b)).toList();
+    return q;
   }
 
   @override

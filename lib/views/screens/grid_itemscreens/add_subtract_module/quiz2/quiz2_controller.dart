@@ -5,7 +5,7 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/ad
 class NumberLineController extends GetxController {
   final audioService = AudioInstructionService.to;
   final addSubtractModuleController = Get.find<AddSubtractModuleController>();
-  
+
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
@@ -19,7 +19,6 @@ class NumberLineController extends GetxController {
   var currentOperation = "+".obs;
   var operationValue = 0.obs;
 
-  // Progress tracking
   var retries = 0.obs;
   var wrongAttempts = 0.obs;
   var hasSubmitted = false.obs;
@@ -28,7 +27,7 @@ class NumberLineController extends GetxController {
   final List<Map<String, dynamic>> questions = [
     {
       "problem": "5 + 3",
-      "instruction": "Help Frog jump 3 spaces forward from 4!",
+      "instruction": "Help Frog jump 3 spaces forward from 5!",
       "audio": "numberline_question1",
       "startPosition": 5,
       "operation": "+",
@@ -36,12 +35,12 @@ class NumberLineController extends GetxController {
       "answer": 8
     },
     {
-      "problem": "8 - 4", 
+      "problem": "8 - 4",
       "instruction": "Help Frog jump 4 spaces backward from 8!",
       "audio": "numberline_question2",
       "startPosition": 8,
       "operation": "-",
-      "value": 2,
+      "value": 4,
       "answer": 4
     },
     {
@@ -50,8 +49,8 @@ class NumberLineController extends GetxController {
       "audio": "numberline_question3",
       "startPosition": 5,
       "operation": "+",
-      "value": 1,  
-      "answer": 6   
+      "value": 1,
+      "answer": 6
     },
     {
       "problem": "9 - 3",
@@ -77,48 +76,40 @@ class NumberLineController extends GetxController {
   void onInit() {
     super.onInit();
     audioService.setInstructionAndSpeak(
-      "kidos! Lets start Number Line Journey! Drag Frog to solve math problems.",
-      "goingbed_audios/numberline_intro.mp3",
+      "Kidos! Let's start Number Line Journey! Drag Frog to solve math problems.",
     ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadCurrentQuestion();
-      });
+      Future.delayed(const Duration(seconds: 2), loadCurrentQuestion);
     });
   }
 
   void loadCurrentQuestion() {
     showFeedback.value = false;
     isCorrect.value = false;
-    final currentQuestion = questions[currentQuestionIndex.value];
-    
-    frogPosition.value = currentQuestion["startPosition"];
-    targetAnswer.value = currentQuestion["answer"];
-    currentOperation.value = currentQuestion["operation"];
-    operationValue.value = currentQuestion["value"];
-    
+    final current = questions[currentQuestionIndex.value];
+
+    frogPosition.value = current["startPosition"];
+    targetAnswer.value = current["answer"];
+    currentOperation.value = current["operation"];
+    operationValue.value = current["value"];
+
     totalQuestions.value++;
-    
-    audioService.playAudioFromPath(currentQuestion["audio"]);
+    // audioService.setInstructionAndSpeak(current["instruction"], current["audio"]);
   }
 
   void resetCurrentQuestion() {
-    frogPosition.value = questions[currentQuestionIndex.value]["startPosition"];
+    frogPosition.value = currentQuestion["startPosition"];
     showFeedback.value = false;
     isCorrect.value = false;
   }
 
   void moveFrog(int steps) {
     if (hasSubmitted.value) return;
-    
-    final newPosition = frogPosition.value + steps;
-    if (newPosition >= 0 && newPosition <= 10) {
-      frogPosition.value = newPosition;
-    }
+    final newPos = frogPosition.value + steps;
+    if (newPos >= 0 && newPos <= 10) frogPosition.value = newPos;
   }
 
   void jumpForward() {
     if (hasSubmitted.value) return;
-    
     if (frogPosition.value + operationValue.value <= 10) {
       frogPosition.value += operationValue.value;
     }
@@ -126,7 +117,6 @@ class NumberLineController extends GetxController {
 
   void jumpBackward() {
     if (hasSubmitted.value) return;
-    
     if (frogPosition.value - operationValue.value >= 0) {
       frogPosition.value -= operationValue.value;
     }
@@ -134,23 +124,17 @@ class NumberLineController extends GetxController {
 
   void checkAnswer() {
     if (hasSubmitted.value) return;
-    
+
     isCorrect.value = frogPosition.value == targetAnswer.value;
     showFeedback.value = true;
 
     if (isCorrect.value) {
       score.value++;
       audioService.playCorrectFeedback();
-      
-      // Record successful question completion
-      if (isLastQuestion) {
-        completeQuiz();
-      }
+      if (isLastQuestion) completeQuiz();
     } else {
       wrongAttempts.value++;
       audioService.playIncorrectFeedback();
-      
-      // Record wrong attempt
       addSubtractModuleController.recordWrongAnswer(
         quizId: "quiz2",
         questionId: "Question ${currentQuestionIndex.value + 1}",
@@ -172,14 +156,12 @@ class NumberLineController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
+
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
       "Amazing! You completed all number line challenges!",
-      "goingbed_audios/numberline_complete.mp3",
     );
-    
-    // Record quiz result
+
     addSubtractModuleController.recordQuizResult(
       quizId: "quiz2",
       score: score.value,
@@ -187,8 +169,7 @@ class NumberLineController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
-    // Sync progress
+
     addSubtractModuleController.syncModuleProgress();
   }
 
@@ -202,52 +183,38 @@ class NumberLineController extends GetxController {
     wrongAttempts.value = 0;
     hasSubmitted.value = false;
     showCompletion.value = false;
-    
+
     audioService.setInstructionAndSpeak(
       "Let's try the number line again!",
-      "goingbed_audios/numberline_reset.mp3",
     ).then((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        loadCurrentQuestion();
-      });
+      Future.delayed(const Duration(seconds: 2), loadCurrentQuestion);
     });
   }
 
   void checkAnswerAndNavigate() {
     if (hasSubmitted.value && showCompletion.value) {
-      // Navigate to the next screen
       // Get.to(() => const NextScreen());
     } else {
       checkAnswer();
     }
   }
 
-  // Progress tracking methods
-  double getProgressPercentage() {
-    return (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
-  }
+  double getProgressPercentage() =>
+      (currentQuestionIndex.value + (showFeedback.value ? 1 : 0)) / questions.length;
 
-  int getRemainingQuestions() {
-    return questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
-  }
+  int getRemainingQuestions() =>
+      questions.length - (currentQuestionIndex.value + (showFeedback.value ? 1 : 0));
 
-  String getCurrentQuestionProgress() {
-    return "Question ${currentQuestionIndex.value + 1}/${questions.length}";
-  }
+  String getCurrentQuestionProgress() =>
+      "Question ${currentQuestionIndex.value + 1}/${questions.length}";
 
-  // Get the current problem with answer for display
-  String getCurrentProblemWithAnswer() {
-    return "${currentQuestion['problem']} = ${targetAnswer.value}";
-  }
+  String getCurrentProblemWithAnswer() =>
+      "${currentQuestion['problem']} = ${targetAnswer.value}";
 
-  // Get frog movement instructions
-  String getFrogMovementInstruction() {
-    if (currentOperation.value == "+") {
-      return "Jump ${operationValue.value} spaces forward";
-    } else {
-      return "Jump ${operationValue.value} spaces backward";
-    }
-  }
+  String getFrogMovementInstruction() =>
+      currentOperation.value == "+"
+          ? "Jump ${operationValue.value} spaces forward"
+          : "Jump ${operationValue.value} spaces backward";
 
   Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
   bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;

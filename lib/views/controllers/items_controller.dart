@@ -1,4 +1,5 @@
-import 'package:autism_fyp/views/games/bucket_game.dart';
+import 'package:autism_fyp/views/game2_screen.dart';
+import 'package:autism_fyp/views/screens/game1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_controller.dart';
@@ -111,12 +112,12 @@ void navigateToItemScreen(String title, BuildContext context) {
           case 'home animals':
       Get.to(() =>  animalsortingscreen());
       break;
-           case 'big and small alphabets':
-      // Get.to(() =>  livingnonlivingscreen());
-      break;
-      //     case 'sounds of alphabets':
-      // Get.to(() =>  BucketGame());
+      //      case 'big and small alphabets':
+      // Get.to(() =>  Game2Screen());
       // break;
+          case 'catch the stars game':
+      Get.to(() =>  Game1Screen());
+      break;
       
       
     default:

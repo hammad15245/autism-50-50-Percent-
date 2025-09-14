@@ -4,9 +4,6 @@ import 'package:get/get.dart';
 import 'package:autism_fyp/views/controllers/global_audio_services.dart';
 
 class Quiz4matchingController extends GetxController {
-  // Images for left and right columns
-
-  // Correct answers mapping: key = leftIndex, value = rightIndex
   final Map<int, int> correctPairs = {
     0: 0,
     1: 4,
@@ -15,98 +12,87 @@ class Quiz4matchingController extends GetxController {
     4: 1,
   };
 
-  // User selected matches: key = leftIndex, value = rightIndex
   var userPairs = <int, int>{}.obs;
-
-  // For feedback: 0 = no feedback, 1 = correct, -1 = incorrect
   var feedback = <int, int>{}.obs;
-
-  // Correct answers count
   var correctCount = 0.obs;
-
-  // Progress tracking
   var retries = 0.obs;
   var wrongAttempts = 0.obs;
   var hasSubmitted = false.obs;
   var showCompletion = false.obs;
   var totalPairs = 5.obs;
+  var isChecking = false.obs;
 
-  // Audio service
   final audioService = AudioInstructionService.to;
   final abcModuleController = Get.find<AbcLettersModuleController>();
 
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
-  var isChecking = false.obs;
+  // Separate flag for short feedback sounds
+  var isFeedbackPlaying = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Match the letters with their correct pairs! Drag and connect matching items.",
-        "goingbed_audios/matching_intro.mp3",
       );
     });
   }
 
   void selectMatch(int leftIndex, int rightIndex) {
-    if (hasSubmitted.value) return; // Don't allow changes after submission
-    
+    if (hasSubmitted.value) return;
     userPairs[leftIndex] = rightIndex;
-    
-    // Play selection sound
-    // audioService.playSoundEffect("abc_audios/selection.mp3");
   }
 
-  void checkAnswers() {
+  void checkAnswers() async {
     if (hasSubmitted.value) return;
-    
+
     isChecking.value = true;
     correctCount.value = 0;
     feedback.clear();
     wrongAttempts.value = 0;
 
-    userPairs.forEach((left, right) {
+    for (final entry in userPairs.entries) {
+      final left = entry.key;
+      final right = entry.value;
+
       if (correctPairs[left] == right) {
-        feedback[left] = 1; // Correct
+        feedback[left] = 1;
         correctCount.value++;
-        
-        // Play correct feedback for each correct pair
-        audioService.playCorrectFeedback();
+
+        _playFeedback(() async {
+          await audioService.playCorrectFeedback();
+        });
       } else {
-        feedback[left] = -1; // Incorrect
+        feedback[left] = -1;
         wrongAttempts.value++;
-        
-        // Record wrong answer
+
         abcModuleController.recordWrongAnswer(
           quizId: "quiz4",
           questionId: "Matching pair ${left + 1}",
           wrongAnswer: "Incorrect match selection",
           correctAnswer: "Should match with correct pair",
         );
-        
-        // Play incorrect feedback
-        audioService.playIncorrectFeedback();
-      }
-    });
 
-    // Check if all pairs are correct
+        _playFeedback(() async {
+          await audioService.playIncorrectFeedback();
+        });
+      }
+    }
+
     if (correctCount.value == totalPairs.value) {
       completeQuiz();
     } else {
-      // Provide feedback for incomplete or incorrect matches
+      // Only update main instruction text once, after checking all pairs
       if (userPairs.length < totalPairs.value) {
         audioService.setInstructionAndSpeak(
-          "You matched ${correctCount.value} out of $totalPairs. Complete all pairs!",
-          "abc_audios/matching_incomplete.mp3",
+          "You matched ${correctCount.value} out of ${totalPairs.value}. Complete all pairs!",
         );
       } else {
         audioService.setInstructionAndSpeak(
           "You got ${correctCount.value} correct! Try to fix the incorrect matches.",
-          "abc_audios/matching_some_wrong.mp3",
         );
       }
     }
@@ -117,14 +103,15 @@ class Quiz4matchingController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
-    audioService.playCorrectFeedback();
+
+    _playFeedback(() async {
+      await audioService.playCorrectFeedback();
+    });
+
     audioService.setInstructionAndSpeak(
       "Perfect matching! You connected all pairs correctly!",
-      "abc_audios/matching_complete.mp3",
     );
-    
-    // Record quiz result
+
     abcModuleController.recordQuizResult(
       quizId: "quiz4",
       score: correctCount.value,
@@ -132,10 +119,9 @@ class Quiz4matchingController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
-    // Sync progress
+
     abcModuleController.syncModuleProgress();
-    
+
     Get.snackbar(
       "Excellent! 🎉",
       "You matched all pairs perfectly!",
@@ -153,16 +139,18 @@ class Quiz4matchingController extends GetxController {
     showCompletion.value = false;
     retries.value++;
     wrongAttempts.value = 0;
-    
+
     audioService.setInstructionAndSpeak(
       "Let's try matching again! Drag items to their correct pairs.",
-      "abc_audios/matching_retry.mp3",
     );
   }
 
   void submitAndNavigate() {
     if (userPairs.length < totalPairs.value) {
-      audioService.playIncorrectFeedback();
+      _playFeedback(() async {
+        await audioService.playIncorrectFeedback();
+      });
+
       Get.snackbar(
         "Incomplete",
         "Please match all pairs before submitting.",
@@ -172,48 +160,28 @@ class Quiz4matchingController extends GetxController {
       );
       return;
     }
-    
+
     checkAnswers();
-    
-    if (correctCount.value == totalPairs.value) {
-      // Navigate to next screen after a delay
-      Future.delayed(const Duration(seconds: 2), () {
-        // Get.to(() => NextScreen()); // Uncomment and add your next screen
-      });
-    }
   }
 
-  // Get progress percentage
-  double getProgressPercentage() {
-    return userPairs.length / totalPairs.value;
-  }
-
-  // Get correct matches percentage
-  double getCorrectPercentage() {
-    return correctCount.value / totalPairs.value;
-  }
-
-  // Get remaining pairs count
-  int getRemainingPairs() {
-    return totalPairs.value - userPairs.length;
-  }
-
-  // Check if a left item is matched
-  bool isLeftItemMatched(int leftIndex) {
-    return userPairs.containsKey(leftIndex);
-  }
-
-  // Check if a right item is matched
-  bool isRightItemMatched(int rightIndex) {
-    return userPairs.containsValue(rightIndex);
-  }
-
-  // Allow screen to call .answers.length
+  double getProgressPercentage() => userPairs.length / totalPairs.value;
+  double getCorrectPercentage() => correctCount.value / totalPairs.value;
+  int getRemainingPairs() => totalPairs.value - userPairs.length;
+  bool isLeftItemMatched(int leftIndex) => userPairs.containsKey(leftIndex);
+  bool isRightItemMatched(int rightIndex) => userPairs.containsValue(rightIndex);
   Map<int, int> get answers => userPairs;
 
   @override
   void onClose() {
     audioService.stopSpeaking();
     super.onClose();
+  }
+
+  /// Helper to prevent overlapping feedback audio
+  void _playFeedback(Future<void> Function() playFn) async {
+    if (isFeedbackPlaying.value) return;
+    isFeedbackPlaying.value = true;
+    await playFn();
+    isFeedbackPlaying.value = false;
   }
 }

@@ -6,12 +6,12 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/bathing
 
 class SensoryController extends GetxController {
   var sensations = [
-    {"id": "smooth", "name": "Smooth", "icon": "lib/assets/quiz4_sensations/smooth.png", "isDragging": false, "audio": "bathing_audios/smooth.mp3"},
-    {"id": "soft", "name": "Soft", "icon": "lib/assets/quiz4_sensations/soft.png", "isDragging": false, "audio": "bathing_audios/soft.mp3"},
-    {"id": "wet", "name": "Wet", "icon": "lib/assets/quiz4_sensations/wet.png", "isDragging": false, "audio": "bathing_audios/wet.mp3"},
-    {"id": "fluffy", "name": "Fluffy", "icon": "lib/assets/quiz4_sensations/fluffy.png", "isDragging": false, "audio": "bathing_audios/fluffy.mp3"},
-    {"id": "slippery", "name": "Slippery", "icon": "lib/assets/quiz4_sensations/slippery.png", "isDragging": false, "audio": "bathing_audios/slippery.mp3"},
-    {"id": "warm", "name": "Warm", "icon": "lib/assets/quiz4_sensations/warm.png", "isDragging": false, "audio": "bathing_audios/warm.mp3"},
+    {"id": "smooth", "name": "Smooth", "icon": "lib/assets/quiz4_sensations/smooth.png", "isDragging": false},
+    {"id": "soft", "name": "Soft", "icon": "lib/assets/quiz4_sensations/soft.png", "isDragging": false},
+    {"id": "wet", "name": "Wet", "icon": "lib/assets/quiz4_sensations/wet.png", "isDragging": false},
+    {"id": "fluffy", "name": "Fluffy", "icon": "lib/assets/quiz4_sensations/fluffy.png", "isDragging": false},
+    {"id": "slippery", "name": "Slippery", "icon": "lib/assets/quiz4_sensations/slippery.png", "isDragging": false},
+    {"id": "warm", "name": "Warm", "icon": "lib/assets/quiz4_sensations/warm.png", "isDragging": false},
   ].obs;
 
   var items = [
@@ -20,24 +20,21 @@ class SensoryController extends GetxController {
       "name": "Soap",
       "icon": "lib/assets/quiz4_sensations/soap.png",
       "acceptedSensations": ["smooth", "slippery"],
-      "placedSensations": <String>[],
-      "audio": "bathing_audios/soap.mp3"
+      "placedSensations": <String>[]
     },
     {
       "id": "towel",
       "name": "Towel",
       "icon": "lib/assets/quiz4_sensations/towel.png",
       "acceptedSensations": ["soft", "fluffy"],
-      "placedSensations": <String>[],
-      "audio": "bathing_audios/towel.mp3"
+      "placedSensations": <String>[]
     },
     {
       "id": "water",
       "name": "Water",
       "icon": "lib/assets/quiz4_sensations/water.png",
       "acceptedSensations": ["wet", "warm"],
-      "placedSensations": <String>[],
-      "audio": "bathing_audios/water.mp3"
+      "placedSensations": <String>[]
     },
   ].obs;
 
@@ -57,14 +54,13 @@ class SensoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    
+
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
-        "Great Let's match sensations to bathing items! Drag and drop sensations to the correct items.",
-        "goingbed_audios/sensations_intro.mp3",
+        "Great! Let's match sensations to bathing items! Drag and drop sensations to the correct items."
       );
     });
-    
+
     resetQuiz();
   }
 
@@ -75,17 +71,16 @@ class SensoryController extends GetxController {
     for (var item in items) {
       item["placedSensations"] = <String>[];
     }
+
     completedMatches.value = 0;
     showCompletion.value = false;
     hasSubmitted.value = false;
     wrongPlacements.value = 0;
+
     sensations.refresh();
     items.refresh();
-    
-    audioService.setInstructionAndSpeak(
-      "Match the sensations to the correct bathing items!",
-      "bathing_audios/sensations_retry.mp3",
-    );
+
+    audioService.setInstructionAndSpeak("Match the sensations to the correct bathing items!");
   }
 
   bool canAcceptSensation(String itemId, String sensationId) {
@@ -105,12 +100,8 @@ class SensoryController extends GetxController {
       sensation["isDragging"] = false;
       completedMatches.value++;
 
-      // Play correct feedback and sensation audio
       audioService.playCorrectFeedback();
-      final sensationAudio = sensation["audio"] as String?;
-      if (sensationAudio != null) {
-        // audioService.playSoundEffect(sensationAudio);
-      }
+      // audioService.speakText(sensation["name"]); // speak sensation name only
 
       if (completedMatches.value >= totalMatches.value) {
         completeQuiz();
@@ -119,18 +110,14 @@ class SensoryController extends GetxController {
       items.refresh();
       sensations.refresh();
     } else {
-      // Play incorrect feedback for wrong placement
       audioService.playIncorrectFeedback();
       wrongPlacements.value++;
-      
-      // Record wrong answer
-      final itemName = item["name"] as String;
-      final sensationName = sensation["name"] as String;
+
       bathingModuleController.recordWrongAnswer(
         quizId: "quiz4",
         questionId: "Sensation matching",
-        wrongAnswer: "Placed $sensationName on $itemName",
-        correctAnswer: "${item["acceptedSensations"]} are correct for $itemName",
+        wrongAnswer: "Placed ${sensation["name"]} on ${item["name"]}",
+        correctAnswer: "${item["acceptedSensations"]} are correct for ${item["name"]}",
       );
     }
   }
@@ -143,9 +130,7 @@ class SensoryController extends GetxController {
       placedSensations.remove(sensationId);
       completedMatches.value--;
       items.refresh();
-      
-      // Play removal sound
-      // audioService.playSoundEffect("bathing_audios/remove.mp3");
+      audioService.speakText("Removed ${getSensation(sensationId)["name"]}");
     }
   }
 
@@ -153,20 +138,16 @@ class SensoryController extends GetxController {
     if (completedMatches.value >= totalMatches.value) {
       showCompletion.value = true;
       audioService.playCorrectFeedback();
-      
+
       Future.delayed(const Duration(seconds: 2), () {
-        // Navigate to the next screen
         Get.to(() => const afterbathscreen());
       });
     } else {
       int remaining = totalMatches.value - completedMatches.value;
-      
+
       audioService.playIncorrectFeedback();
-      audioService.setInstructionAndSpeak(
-        "Find $remaining more matches to continue.",
-        "bathing_audios/more_matches_needed.mp3",
-      );
-      
+      audioService.setInstructionAndSpeak("Find $remaining more matches to continue.");
+
       Get.snackbar(
         "Almost there!",
         "Find $remaining more matches",
@@ -181,14 +162,10 @@ class SensoryController extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
+
     audioService.playCorrectFeedback();
-    audioService.setInstructionAndSpeak(
-      "Excellent! You matched all the sensations correctly!",
-      "bathing_audios/all_sensations_matched.mp3",
-    );
-    
-    // Record quiz result
+    audioService.setInstructionAndSpeak("Excellent! You matched all the sensations correctly!");
+
     bathingModuleController.recordQuizResult(
       quizId: "quiz4",
       score: completedMatches.value,
@@ -196,9 +173,9 @@ class SensoryController extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongPlacements.value,
     );
-    
+
     bathingModuleController.syncModuleProgress();
-    
+
     Get.snackbar(
       "Amazing! 🎉",
       "You matched all sensations perfectly!",
@@ -208,7 +185,6 @@ class SensoryController extends GetxController {
     );
   }
 
-  // ADD BACK THE MISSING METHOD
   Map<String, dynamic> getSensation(String sensationId) {
     return sensations.firstWhere((s) => s["id"] == sensationId);
   }
@@ -218,34 +194,17 @@ class SensoryController extends GetxController {
   }
 
   void playItemAudio(String itemId) {
-    final item = items.firstWhere((item) => item["id"] == itemId);
-    final itemAudio = item["audio"] as String?;
-    // if (itemAudio != null) {
-    //   audioService.playSoundEffect(itemAudio);
-    // } else {
-    //   audioService.speak(item["name"] as String);
-    // }
+    final item = getItem(itemId);
+    audioService.speakText(item["name"]);
   }
 
   void playSensationAudio(String sensationId) {
-    final sensation = sensations.firstWhere((s) => s["id"] == sensationId);
-    final sensationAudio = sensation["audio"] as String?;
-    // if (sensationAudio != null) {
-    //   audioService.playSoundEffect(sensationAudio);
-    // } else {
-    //   audioService.speak(sensation["name"] as String);
-    // }
+    final sensation = getSensation(sensationId);
+    audioService.speakText(sensation["name"]);
   }
 
-  // Get progress percentage
-  double getProgressPercentage() {
-    return completedMatches.value / totalMatches.value;
-  }
-
-  // Get remaining matches count
-  int getRemainingMatches() {
-    return totalMatches.value - completedMatches.value;
-  }
+  double getProgressPercentage() => completedMatches.value / totalMatches.value;
+  int getRemainingMatches() => totalMatches.value - completedMatches.value;
 
   @override
   void onClose() {

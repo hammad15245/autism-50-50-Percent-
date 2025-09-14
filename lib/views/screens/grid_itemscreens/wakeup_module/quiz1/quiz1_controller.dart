@@ -57,7 +57,6 @@ class WakeUpController extends GetxController {
     Future.delayed(Duration.zero, () {
       audioService.setInstructionAndSpeak(
         "Hey kiddo! welcome to this quiz lets start sequencing the morning routine.",
-        "goingbed_audios/wakeup_audio.mp3",
       );
     });
   }
@@ -103,7 +102,6 @@ class WakeUpController extends GetxController {
     shuffleItems(); // Reshuffle when resetting
     audioService.setInstructionAndSpeak(
       "Hey kiddo! welcome to this quiz lets start sequencing the morning routine.",
-      "goingbed_audios/wakeup_audio.mp3",
     );
   }
   

@@ -42,7 +42,6 @@ final homeAnimalsController = Get.find<HomeAnimalsController>();
     super.onInit();
     audioService.setInstructionAndSpeak(
       "Hey kiddos! Welcome to Animal Sorting! Drag animals to wild or home side.",
-      "goingbed_audios/animalsort_intro.mp3",
     ).then((_) {
       Future.delayed(const Duration(seconds: 2), () {
         loadQuestion();
