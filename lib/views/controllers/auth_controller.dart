@@ -216,7 +216,7 @@ Future<void> registerUser(String selectedRole) async {
         await _auth.signOut();
         Get.snackbar(
           "👨‍👩‍👧‍👦 Web Account Detected",
-          "Parent/Teacher dashboard is available on our website. Please visit website for admin features.",
+          "Parent/Teacher dashboard is available on our website. Please visit our website github.io/autism_web11/ for admin features.",
           backgroundColor: Colors.red,
           colorText: Colors.white,
           duration: const Duration(seconds: 5),
@@ -229,24 +229,19 @@ Future<void> registerUser(String selectedRole) async {
         final hasGender = userData.containsKey('gender') && userData['gender'] != null;
         final hasAvatar = userData.containsKey('avatar') && userData['avatar'] != null;
 
-        // First check gender and avatar
         if (!hasGender || !hasAvatar) {
           Get.offAll(() => const GenderSelectionScreen());
           return;
         }
 
-        // Then check preferences
         final hasPreferences = await _checkUserPreferences(userId);
         
         if (!hasPreferences) {
-          // Show personalization questions
           Get.offAll(() => PersonalizationQuestionsScreen(isFirstTime: true));
         } else {
-          // Go directly to home screen
           Get.offAll(() => const HomeScreen());
         }
       } else {
-        // User doesn't exist in any collection
         await _auth.signOut();
         Get.snackbar("Error", "User data not found",
             backgroundColor: Colors.red, colorText: Colors.white);

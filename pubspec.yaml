@@ -128,8 +128,7 @@ flutter:
     - assets/images/coral_bottom.png
     - assets/images/ocean_bg.png
     - assets/Videos/splash.mp4
-  #   - images/a_dot_ham.jpeg
-
+    - assets/images/apple_templete.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

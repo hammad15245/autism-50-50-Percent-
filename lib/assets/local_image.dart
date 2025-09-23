@@ -28,6 +28,8 @@ String getImageForTitle(String title) {
       return 'lib/assets/countthings.png'; 
         case 'addition and subtraction':
       return 'lib/assets/plusminus.png';
+       case 'be an artist':
+      return 'lib/assets/art.png';
     default:
       return 'assets/images/default.png';
   }
@@ -49,6 +51,8 @@ String getCategoryImage(String category) {
     case 'fruit':
       return 'lib/assets/fruitscategory.png';
      case 'daily life':
+      return 'lib/assets/dailycategory.png';
+        case 'art game':
       return 'lib/assets/dailycategory.png';
     default:
       return 'assets/lib/default.png';
