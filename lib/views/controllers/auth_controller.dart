@@ -216,7 +216,7 @@ Future<void> registerUser(String selectedRole) async {
         await _auth.signOut();
         Get.snackbar(
           "👨‍👩‍👧‍👦 Web Account Detected",
-          "Parent/Teacher dashboard is available on our website. Please visit our website github.io/autism_web11/ for admin features.",
+          "Parent/Teacher dashboard is available on our website. Please visit our website autism-f1464.web.app for admin features.",
           backgroundColor: Colors.red,
           colorText: Colors.white,
           duration: const Duration(seconds: 5),
