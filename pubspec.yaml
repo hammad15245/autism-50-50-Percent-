@@ -121,6 +121,8 @@ flutter:
     - assets/audio/point_sound.mp3
     - assets/audio/jump_sound.mp3
     - assets/audio/bg_music2.mp3
+    - assets/audio/owl.mp3
+    - assets/audio/bird.mp3
     - assets/images/fish1.png
     - assets/images/fish2.png
     - assets/images/fish3.png

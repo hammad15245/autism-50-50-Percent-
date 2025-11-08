@@ -6,12 +6,12 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/birds_mod
 class birdcontroller extends GetxController {
   final audioService = AudioInstructionService.to;
   final birdsModuleController = Get.find<BirdsModuleController>();
-  
+
   RxString get instructionText => audioService.instructionText;
   RxBool get isSpeaking => audioService.isSpeaking;
 
   var currentQuestionIndex = 0.obs;
-  var selectedBird = RxString('');
+  var selectedBird = ''.obs;
   var showFeedback = false.obs;
   var isCorrect = false.obs;
   var score = 0.obs;
@@ -25,35 +25,19 @@ class birdcontroller extends GetxController {
     {
       "question": "Listen carefully! Which bird makes this sound?",
       "correctBird": "sparrow",
-      "audio": "Sparrow sound"
-      , "options": [
-        {
-          "id": "sparrow",
-          "name": "Sparrow",
-          "icon": "lib/assets/quiz1_birds/sparrow.png",
-        },
-        {
-          "id": "eagle",
-          "name": "Eagle",
-          "icon": "lib/assets/quiz1_birds/eagle.png", 
-        }
+      "audio": "assets/audio/bird.mp3",
+      "options": [
+        {"id": "sparrow", "name": "Sparrow", "icon": "lib/assets/quiz1_birds/sparrow.png"},
+        {"id": "eagle", "name": "Eagle", "icon": "lib/assets/quiz1_birds/eagle.png"},
       ]
     },
     {
       "question": "Can you identify this bird sound?",
       "correctBird": "owl",
-      "audio": "Owl sound",
+      "audio": "assets/audio/owl.mp3",
       "options": [
-        {
-          "id": "robin",
-          "name": "Robin",
-          "icon": "lib/assets/quiz1_birds/robin.png",
-        },
-        {
-          "id": "owl",
-          "name": "Owl",
-          "icon": "lib/assets/quiz1_birds/owl.png",
-        }
+        {"id": "robin", "name": "Robin", "icon": "lib/assets/quiz1_birds/robin.png"},
+        {"id": "owl", "name": "Owl", "icon": "lib/assets/quiz1_birds/owl.png"},
       ]
     }
   ];
@@ -61,6 +45,8 @@ class birdcontroller extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // Use TTS only for instructions
     audioService.setInstructionAndSpeak(
       "Hey kiddos! Welcome to Bird Sound Matching. Listen to the sounds and find the right bird."
     ).then((_) {
@@ -74,22 +60,22 @@ class birdcontroller extends GetxController {
     selectedBird.value = '';
     showFeedback.value = false;
     isCorrect.value = false;
-    
+
     Future.delayed(const Duration(milliseconds: 500), () {
       playQuestionSound();
     });
   }
 
   void playQuestionSound() {
-    final currentAudio = questions[currentQuestionIndex.value]["audio"];
-    if (currentAudio != null) {
-      audioService.speakText("Playing bird sound: $currentAudio");
+    final audioPath = questions[currentQuestionIndex.value]["audio"];
+    if (audioPath != null) {
+      audioService.playLocalAudio(audioPath);
     }
   }
 
   void checkAnswer(String birdId) {
     if (hasSubmitted.value) return;
-    
+
     selectedBird.value = birdId;
     final correctAnswer = questions[currentQuestionIndex.value]["correctBird"];
     isCorrect.value = birdId == correctAnswer;
@@ -127,12 +113,12 @@ class birdcontroller extends GetxController {
   void completeQuiz() {
     showCompletion.value = true;
     hasSubmitted.value = true;
-    
+
     audioService.playCorrectFeedback();
     audioService.setInstructionAndSpeak(
       "Excellent! You identified all the bird sounds correctly!"
     );
-    
+
     birdsModuleController.recordQuizResult(
       quizId: "quiz1",
       score: score.value,
@@ -140,7 +126,7 @@ class birdcontroller extends GetxController {
       isCompleted: true,
       wrongAnswersCount: wrongAttempts.value,
     );
-    
+
     birdsModuleController.syncModuleProgress();
   }
 
@@ -160,7 +146,7 @@ class birdcontroller extends GetxController {
     wrongAttempts.value = 0;
     hasSubmitted.value = false;
     showCompletion.value = false;
-    
+
     audioService.setInstructionAndSpeak(
       "Let's listen to the bird sounds again!"
     ).then((_) {
@@ -192,8 +178,10 @@ class birdcontroller extends GetxController {
     return "Question ${currentQuestionIndex.value + 1}/${questions.length}";
   }
 
-  Map<String, dynamic> get currentQuestion => questions[currentQuestionIndex.value];
-  bool get isLastQuestion => currentQuestionIndex.value == questions.length - 1;
+  Map<String, dynamic> get currentQuestion =>
+      questions[currentQuestionIndex.value];
+  bool get isLastQuestion =>
+      currentQuestionIndex.value == questions.length - 1;
 
   @override
   void onClose() {

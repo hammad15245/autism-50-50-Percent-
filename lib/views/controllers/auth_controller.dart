@@ -102,10 +102,8 @@ Future<void> registerUser(String selectedRole) async {
       "hasCompletedPreferences": false, // Add this field
     };
 
-    // Save user data to appropriate collection
     await _firestore.collection(collectionName).doc(uid).set(userData);
     
-    // Only create progress for child accounts (users)
     if (selectedRole.toLowerCase() == "users") {
       ProgressController.to.createInitialProgress();
       
@@ -154,19 +152,15 @@ Future<void> registerUser(String selectedRole) async {
   }
 }
 
-  // ------------------- CHECK PREFERENCES -------------------
   Future<bool> _checkUserPreferences(String userId) async {
     try {
-      // Check if user has completed preferences
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final hasCompletedPrefs = userDoc.data()?['hasCompletedPreferences'] ?? false;
       
-      // If already completed, no need to show questions
       if (hasCompletedPrefs) {
         return true;
       }
 
-      // Check if preferences document exists
       final prefsDoc = await _firestore
           .collection('users')
           .doc(userId)
@@ -207,7 +201,6 @@ Future<void> registerUser(String selectedRole) async {
         return;
       }
 
-      // Check all three collections: users, parents, and teachers
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final parentDoc = await _firestore.collection('parents').doc(userId).get();
       final teacherDoc = await _firestore.collection('teachers').doc(userId).get();

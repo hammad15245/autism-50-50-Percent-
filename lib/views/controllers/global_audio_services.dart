@@ -19,6 +19,22 @@ class AudioInstructionService extends GetxService {
     super.onClose();
   }
 
+  /// ✅ NEW: Play local audio file (assets) without TTS
+  Future<void> playLocalAudio(String assetPath) async {
+    try {
+      await stopSpeaking(); // Stop TTS if running
+      instructionText.value = ""; // No text for asset audio
+      isSpeaking.value = false;
+
+      // Remove "assets/" for AssetSource()
+      final sourcePath = assetPath.replaceFirst("assets/", "");
+
+      await audioPlayer.play(AssetSource(sourcePath));
+    } catch (e) {
+      print("Local audio error: $e");
+    }
+  }
+
   /// 🔊 Speak instruction with word-by-word UI updates
   Future<void> setInstructionAndSpeak(String text, {bool useAI = true}) async {
     if (isSpeaking.value) await stopSpeaking();
@@ -30,7 +46,6 @@ class AudioInstructionService extends GetxService {
       if (useAI) {
         await speakText(text);
       } else {
-        // fallback if needed, but ElevenLabs will always be used when useAI=true
         await audioPlayer.play(AssetSource("goingbed_audios/fallback.mp3"));
       }
     } catch (e) {
@@ -71,7 +86,7 @@ class AudioInstructionService extends GetxService {
   /// 🟡 ElevenLabs TTS API integration
   Future<void> _playElevenLabsSpeech(String text) async {
     final url = Uri.parse(
-      "https://api.elevenlabs.io/v1/text-to-speech/${AppConfig.elevenLabsVoiceId}", 
+      "https://api.elevenlabs.io/v1/text-to-speech/${AppConfig.elevenLabsVoiceId}",
     );
 
     final response = await http.post(
@@ -84,7 +99,7 @@ class AudioInstructionService extends GetxService {
       body: jsonEncode({
         "text": text,
         "voice_settings": {
-          "stability": 0.6, // 0-1, adjust for naturalness
+          "stability": 0.6,
           "similarity_boost": 0.8
         }
       }),
@@ -95,7 +110,6 @@ class AudioInstructionService extends GetxService {
       final dir = await getTemporaryDirectory();
       final file = File("${dir.path}/tts_output.mp3");
       await file.writeAsBytes(bytes);
-
       await audioPlayer.play(DeviceFileSource(file.path));
     } else {
       throw Exception("ElevenLabs TTS failed: ${response.body}");
