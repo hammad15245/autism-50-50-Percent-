@@ -2,7 +2,6 @@ import 'package:autism_fyp/assets/local_image.dart';
 import 'package:autism_fyp/views/controllers/auth_controller.dart';
 import 'package:autism_fyp/views/controllers/items_controller.dart';
 import 'package:autism_fyp/views/controllers/nav_controller.dart';
-import 'package:autism_fyp/views/screens/leaderboard_screen.dart';
 import 'package:autism_fyp/views/screens/profile_screen.dart';
 import 'package:autism_fyp/views/screens/search_screen.dart';
 import 'package:autism_fyp/views/widget/custom_widget.dart';
@@ -360,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               Container(child: SearchScreen()),
-              Container(child: LeaderboardScreen()),
+              Container(child: Center(child: Text('Leaderboard Screen'))),
               Container(child: ProfileScreen()),
             ],
           ),

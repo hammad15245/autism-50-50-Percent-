@@ -58,7 +58,6 @@ class _PersonalizationQuestionsScreenState extends State<PersonalizationQuestion
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        // Save to personalized_learning collection
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)

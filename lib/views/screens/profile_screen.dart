@@ -143,129 +143,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _updateEmailPassword() async {
-    final emailController = TextEditingController(text: userEmail);
-    final passwordController = TextEditingController();
+  // Future<void> _updateEmailPassword() async {
+  //   final emailController = TextEditingController(text: userEmail);
+  //   final passwordController = TextEditingController();
 
-    await showDialog(
+  //   await showDialog(
       
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Update Email & Password"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       backgroundColor: Colors.white,
+  //       title: const Text("Update Email & Password"),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           TextField(
+  //             controller: emailController,
+  //             decoration: const InputDecoration(
+  //               labelText: "Email",
+  //               border: OutlineInputBorder(),
+  //             ),
+  //           ),
+  //           const SizedBox(height: 10),
+  //           TextField(
 
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "New Password (optional)",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
+  //             controller: passwordController,
+  //             obscureText: true,
+  //             decoration: const InputDecoration(
+  //               labelText: "New Password (optional)",
+  //               border: OutlineInputBorder(),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
             
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel",),
-          ),
-          TextButton(
-            onPressed: () async {
-              try {
-                final user = FirebaseAuth.instance.currentUser;
-                if (user != null) {
-                  // Update email
-                  if (emailController.text.trim() != user.email) {
-                    await user.updateEmail(emailController.text.trim());
-                  }
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text("Cancel",),
+  //         ),
+  //         TextButton(
+  //           onPressed: () async {
+  //             try {
+  //               final user = FirebaseAuth.instance.currentUser;
+  //               if (user != null) {
+  //                 // Update email
+  //                 if (emailController.text.trim() != user.email) {
+  //                   await user.updateEmail(emailController.text.trim());
+  //                 }
                   
-                  // Update password if provided
-                  if (passwordController.text.trim().isNotEmpty) {
-                    await user.updatePassword(passwordController.text.trim());
-                  }
+  //                 // Update password if provided
+  //                 if (passwordController.text.trim().isNotEmpty) {
+  //                   await user.updatePassword(passwordController.text.trim());
+  //                 }
                   
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Updated successfully")),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Error updating: ${e.toString()}")),
-                );
-              }
-            },
-            child: const Text("Update"),
-          ),
-        ],
-      ),
-    );
-  }
+  //                 Navigator.pop(context);
+  //                 ScaffoldMessenger.of(context).showSnackBar(
+  //                   const SnackBar(content: Text("Updated successfully")),
+  //                 );
+  //               }
+  //             } catch (e) {
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 SnackBar(content: Text("Error updating: ${e.toString()}")),
+  //               );
+  //             }
+  //           },
+  //           child: const Text("Update"),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Future<void> _eraseData() async {
-    final confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Erase All Data"),
-        content: const Text("Are you sure you want to delete all your data? This action cannot be undone."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  // Future<void> _eraseData() async {
+  //   final confirm = await showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       backgroundColor: Colors.white,
+  //       title: const Text("Erase All Data"),
+  //       content: const Text("Are you sure you want to delete all your data? This action cannot be undone."),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, false),
+  //           child: const Text("Cancel"),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, true),
+  //           child: const Text("Delete", style: TextStyle(color: Colors.red)),
+  //         ),
+  //       ],
+  //     ),
+  //   );
 
-    if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data erasure functionality would be implemented here")),
-      );
-    }
-  }
+  //   if (confirm == true) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Data erasure functionality would be implemented here")),
+  //     );
+  //   }
+  // }
 
-  Future<void> _logout() async {
-    final confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to logout?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Logout"),
-          ),
-        ],
-      ),
-    );
+  // Future<void> _logout() async {
+  //   final confirm = await showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       backgroundColor: Colors.white,
+  //       title: const Text("Logout"),
+  //       content: const Text("Are you sure you want to logout?"),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, false),
+  //           child: const Text("Cancel"),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, true),
+  //           child: const Text("Logout"),
+  //         ),
+  //       ],
+  //     ),
+  //   );
 
-    if (confirm == true) {
-      await FirebaseAuth.instance.signOut();
-      Get.offAll(() => LoginScreen());
-    }
-  }
+  //   if (confirm == true) {
+  //     await FirebaseAuth.instance.signOut();
+  //     Get.offAll(() => LoginScreen());
+  //   }
+  // }
 
  
 
@@ -343,7 +343,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                       
                       GestureDetector(
-                        onTap: _updateEmailPassword,
                         child: const _ActionRow(
                           icon: Icons.email,
                           label: "Update Email & Password",
@@ -352,12 +351,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const Divider(height: 1, thickness: 0.2, color: Colors.grey),
                       
-                      // Erase Data
+                      // Edit Username
                       GestureDetector(
-                        onTap: _eraseData,
+                        onTap: _editUsername,
                         child: const _ActionRow(
                           icon: Icons.edit,
-                          label: "Erase data",
+                          label: "Edit Username",
                           color: Color.fromARGB(255, 76, 145, 175),
                         ),
                       ),
@@ -376,7 +375,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       
                       // Logout
                       GestureDetector(
-                        onTap: _logout,
                         child: const _ActionRow(
                           icon: Icons.exit_to_app,
                           label: "Logout",

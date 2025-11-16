@@ -1,14 +1,6 @@
-// nav_controller.dart
-import 'dart:io';
 
-import 'package:autism_fyp/views/screens/gender_selectionscreen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz3/quiz3_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz4/quiz4_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushingteethquiz5/quiz5_screen.dart';
-import 'package:autism_fyp/views/screens/leaderboard_screen.dart';
 import 'package:autism_fyp/views/screens/profile_screen.dart';
-import 'package:autism_fyp/views/screens/signup_screen.dart';
-import 'package:autism_fyp/views/screens/username_selectionscreen.dart';
+
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,7 +19,6 @@ class NavController extends GetxController {
   List<Widget> get pages => [
     HomeScreen(),
     SearchScreen(),
-    LeaderboardScreen(),
     ProfileScreen(),
   ];
 

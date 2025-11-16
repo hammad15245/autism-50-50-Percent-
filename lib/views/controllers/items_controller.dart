@@ -1,7 +1,4 @@
-import 'package:autism_fyp/views/game2_screen.dart';
-import 'package:autism_fyp/views/screens/game1_screen.dart';
-import 'package:autism_fyp/views/screens/game3_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/ABC_letters_modules/quiz1/quiz1_screen.dart';
+
 import 'package:autism_fyp/views/screens/grid_itemscreens/Birds_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_screen.dart';
@@ -9,8 +6,6 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/Going-to-bed_module/qu
 import 'package:autism_fyp/views/screens/grid_itemscreens/add_subtract_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/bathing_module/quiz1/quiz1_screen.dart';
 
-import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz1/quiz1_screen.dart';
-import 'package:autism_fyp/views/screens/grid_itemscreens/eating_food_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/home_animals_module/quiz1/quiz1_screen.dart';
 import 'package:autism_fyp/views/widget/items_model.dart';
 import 'package:flutter/material.dart';
@@ -86,18 +81,12 @@ void navigateToItemScreen(String title, BuildContext context) {
       Get.to(() => const BrushingteethScreen());
       
       break;
-    case 'abc letters':
-      Get.to(() => const Quiz1Screen());
-      break;
+
       case 'bathing':
       Get.to(() => const BathTimeItemsScreen());
       break;
-      case 'count the things':
-      Get.to(() =>  countbathitems());
-      break;
-      case 'eating food':
-      Get.to(() =>  FoodIdentificationscreen());
-      break;
+   
+ 
           case 'going to bed':
       Get.to(() =>  Bedtimescreen());
       break;
@@ -113,12 +102,8 @@ void navigateToItemScreen(String title, BuildContext context) {
           case 'home animals':
       Get.to(() =>  animalsortingscreen());
       break;
-           case 'be an artist':
-      Get.to(() =>  ArtGameScreen());
-      break;
-          case 'catch the stars game':
-      Get.to(() =>  Game1Screen());
-      break;
+ 
+     
       
       
     default:

@@ -3,7 +3,6 @@ import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules
 import 'package:autism_fyp/views/screens/grid_itemscreens/Brushing_teeth_modules/brushing_teeth/brushingteeth_controller.dart';
 import 'package:autism_fyp/views/screens/grid_itemscreens/avatar_controller.dart';
 
-import 'package:autism_fyp/views/screens/grid_itemscreens/counting_module/quiz3/step_progressquiz3.dart';
 import 'package:autism_fyp/views/screens/progressheader.dart';
 
 import 'package:flutter/material.dart';

@@ -1,4 +1,4 @@
 class AppConfig {
-  static const elevenLabsApiKey = "sk_c74728d4e4e0a4ed4293c9bcc5873aeb32afcb7d6b3ee0de"; 
+  static const elevenLabsApiKey = "sk_32f7c71035875636185975c6d3f18a66869d73e3fb0675ee"; 
   static const elevenLabsVoiceId = "ocZQ262SsZb9RIxcQBOj"; 
 }
