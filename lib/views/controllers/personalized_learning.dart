@@ -153,48 +153,38 @@ class _PersonalizationQuestionsScreenState extends State<PersonalizationQuestion
     );
   }
 
-  Widget _buildOptions(Question question) {
-    if (question.type == QuestionType.singleChoice) {
-      return ListView.builder(
-        itemCount: question.options.length,
-        itemBuilder: (context, index) {
-          final option = question.options[index];
-          final isSelected = _answers[question.id] == option;
-          return ListTile(
-            title: Text(option),
-            leading: Radio(
-              value: option,
-              groupValue: _answers[question.id],
-              onChanged: (value) => setState(() => _answers[question.id] = value),
-            ),
-            onTap: () => setState(() => _answers[question.id] = option),
-          );
+Widget _buildOptions(Question question) {
+  var rawValue = _answers[question.id];
+
+  // Convert String → List<String> safely
+  final selectedOptions = rawValue is String
+      ? [rawValue]
+      : List<String>.from(rawValue ?? []);
+
+  return ListView.builder(
+    itemCount: question.options.length,
+    itemBuilder: (context, index) {
+      final option = question.options[index];
+
+      return CheckboxListTile(
+        title: Text(option),
+        value: selectedOptions.contains(option),
+        onChanged: (value) {
+          setState(() {
+            if (value == true) {
+              selectedOptions.add(option);
+            } else {
+              selectedOptions.remove(option);
+            }
+
+            _answers[question.id] = selectedOptions;
+          });
         },
       );
-    } else {
-      final selectedOptions = List<String>.from(_answers[question.id] ?? []);
-      return ListView.builder(
-        itemCount: question.options.length,
-        itemBuilder: (context, index) {
-          final option = question.options[index];
-          return CheckboxListTile(
-            title: Text(option),
-            value: selectedOptions.contains(option),
-            onChanged: (value) {
-              setState(() {
-                if (value == true) {
-                  selectedOptions.add(option);
-                } else {
-                  selectedOptions.remove(option);
-                }
-                _answers[question.id] = selectedOptions;
-              });
-            },
-          );
-        },
-      );
-    }
-  }
+    },
+  );
+}
+
 
   Widget _buildNavigationButtons() {
     return Row(
@@ -204,7 +194,7 @@ class _PersonalizationQuestionsScreenState extends State<PersonalizationQuestion
           CustomElevatedButton(
             text: 'Previous',
             onPressed: () => setState(() => _currentQuestionIndex--),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[300]),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: _primaryColor),
           )
         else
           const SizedBox(width: 100),
